@@ -1,0 +1,23 @@
+//- set the doctype first, pug can accept different doctypes
+doctype html
+
+html
+  head
+    //- Base metas
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    meta(name="viewport" content="width=device-width, initial-scale=1, user-scalable=1, minimum-scale=1")
+    meta(http-equiv="X-UA-Compatible" content="ie=edge")
+
+    //- Title and description
+    meta(name="description" content="Desc")
+    title Title
+
+  body
+    ul
+      each files, folder in tree
+        li
+          =folder
+          ul
+            each fileData, fileName in files
+              li=fileName

@@ -1,0 +1,40 @@
+.dropzone {
+  background-color: LightSteelBlue;
+  align-items: center;
+  border: 10px dashed SteelBlue;
+  display: flex;
+  justify-content: center;
+  width:  100vw;
+  height: 100vh;
+  font-size: 40px;
+  font-weight: bold;
+  color: rgb(238, 238, 238);
+  padding: 20px;
+}
+
+.dropzone.is-over {
+  background-color: MediumSeaGreen;
+  border-color: SeaGreen;
+}
+
+.dropzone.is-processing {
+  background-color: LightGrey;
+  border-color: Gray;
+}
+
+.dropzone.is-error {
+  background-color: LightCoral;
+  border-color: IndianRed;
+}
+
+.dropzone__message {
+  text-align: center;
+}
+
+.dropzone__message span {
+  display: block;
+}
+
+.dropzone__message .small {
+  font-size: 0.4em;
+}
