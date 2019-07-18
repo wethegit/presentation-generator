@@ -22,7 +22,9 @@
     "directories": {
       "buildResources": "resources"
     },
-    "publish": null
+    "publish": {
+      "GH_TOKEN": "a684d5084f3dcfa7045a4a0c3e1e1c19378709a7"
+    }
   },
   "scripts": {
     "postinstall": "electron-builder install-app-deps",
