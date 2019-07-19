@@ -2,7 +2,7 @@
   "name": "presentation-generator",
   "productName": "WTC Presentation Generator",
   "description": "A simple app that generates presentations based on a folder structure.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": "Marlon Marcello <marlon.marcello@gmail.com>",
   "copyright": "© 2019, we { the collective }",
   "homepage": "http://wethecollective.com",
@@ -16,6 +16,19 @@
     "start": "node build/start.js",
     "release": "webpack --config=build/webpack.app.config.js --env=production && electron-builder",
     "publish": "build -p always"
+  },
+  "build": {
+    "appId": "com.electron.presentation-generator",
+    "productName": "Presentation Generator",
+    "copyright": "Copyright © 2019 we { the collective }",
+    "directories": {
+      "buildResources": "resources"
+    },
+    "files": [
+      "app/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ]
   },
   "dependencies": {
     "electron-log": "^3.0.6",
