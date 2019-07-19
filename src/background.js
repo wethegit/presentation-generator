@@ -10,6 +10,7 @@ import { autoUpdater } from "electron-updater";
 import log from 'electron-log';
 import { devMenuTemplate } from "./menu/dev_menu_template";
 import { editMenuTemplate } from "./menu/edit_menu_template";
+import { updateMenuTemplate } from "./menu/update_menu_template";
 import createWindow from "./helpers/window";
 
 autoUpdater.logger = log;
@@ -22,9 +23,16 @@ import env from "env";
 
 const setApplicationMenu = () => {
   const menus = [editMenuTemplate];
+
+  if (process.platform === 'darwin') {
+    // OS X
+    menus.unshift(updateMenuTemplate);
+  }
+
   if (env.name !== "production") {
     menus.push(devMenuTemplate);
   }
+
   Menu.setApplicationMenu(Menu.buildFromTemplate(menus));
 };
 
