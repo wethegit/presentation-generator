@@ -12,14 +12,26 @@ import { devMenuTemplate } from "./menu/dev_menu_template";
 import { editMenuTemplate } from "./menu/edit_menu_template";
 import { updateMenuTemplate } from "./menu/update_menu_template";
 import createWindow from "./helpers/window";
-
-autoUpdater.logger = log;
-autoUpdater.logger.transports.file.level = 'info';
-log.info('App starting...');
+import Store from './store/store';
 
 // Special module holding environment variables which you declared
 // in config/env_xxx.json file.
 import env from "env";
+
+// First instantiate the class
+const store = new Store({
+  // We'll call our data file 'user-preferences'
+  configName: 'user-preferences',
+  defaults: {
+    // 800x600 is the default size of our window
+    windowBounds: { width: 800, height: 600 }
+  }
+});
+
+// Set up logger
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'info';
+log.info('App starting...');
 
 const setApplicationMenu = () => {
   const menus = [editMenuTemplate];
@@ -45,15 +57,29 @@ if (env.name !== "production") {
 }
 
 app.on("ready", () => {
+  // First we'll get our height and width. This will be the defaults if there wasn't anything saved
+  let { width, height } = store.get('windowBounds');
+
   setApplicationMenu();
 
   const mainWindow = createWindow("main", {
-    width: 1000,
-    height: 600,
+    width,
+    height,
     webPreferences: {
       nodeIntegration: true
     }
   });
+
+  // The BrowserWindow class extends the node.js core EventEmitter class, so we use that API
+  // to listen to events on the BrowserWindow. The resize event is emitted when the window size changes.
+  mainWindow.on('resize', () => {
+    // The event doesn't pass us the window size, so we call the `getBounds` method which returns an object with
+    // the height, width, and x and y coordinates.
+    let { width, height } = mainWindow.getBounds();
+    // Now that we have them, save them using the `set` method.
+    store.set('windowBounds', { width, height });
+  });
+
 
   mainWindow.loadURL(
     url.format({

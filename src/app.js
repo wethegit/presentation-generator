@@ -1,48 +1,74 @@
-import "./stylesheets/main.css";
+import * as pug from "pug";
+import { remote } from "electron";
+import jetpack from "fs-jetpack";
+// import env from "env";
+import Store from './store/store';
 
-// Small helpers you might want to keep
+// menus
 import "./helpers/context_menu.js";
 import "./helpers/external_links.js";
 
-// ----------------------------------------------------------------------------
-// Everything below is just to show you how it works. You can delete all of it.
-// ----------------------------------------------------------------------------
-import * as pug from "pug";
-import { remote } from "electron";
-
-import jetpack from "fs-jetpack";
-// import env from "env";
-import DropZone from './dropzone/dropzone';
+// Main styles
+import "./stylesheets/main.css";
 
 const dialog = remote.dialog;
 const app = remote.app;
-const appDir = jetpack.cwd(app.getAppPath());
+const store = new Store({
+  configName: 'app',
+  defaults: {
+    defautPath: '/'
+  }
+});
 
 // Holy crap! This is browser window with HTML and stuff, but I can read
 // files from disk like it's node.js! Welcome to Electron world :)
-const manifest = appDir.read("package.json", "json");
+const appDir = jetpack.cwd(app.getAppPath());
 
-// Show the app
+// Start of the app
 const appElement = document.querySelector("#app");
-appElement.style.display = "block";
-
 const feedbackElement = appElement.querySelector('.app__feedback');
-feedbackElement.addEventListener('click', function() {
-  feedbackElement.style.display = 'none';
-});
-
-const giveFeedback = function(message) {
-  feedbackElement.style.display = 'flex';
-  feedbackElement.innerHTML = message;
-}
-
-// set dropzone
-const dropzone = new DropZone(document.getElementById('dropzone'));
 const acceptedFolders = ['mobile', 'tablet', 'desktop'];
 const ignore = ['.DS_Store'];
 
+let defaultPath = store.get('dropzone_path');
+let feedbackDelay = null;
+let tree = null;
+let state = 'idle';
+
+const giveFeedback = function(message) {
+  clearTimeout(feedbackDelay);
+  feedbackElement.innerHTML = message;
+}
+
+const setState = function(value) {
+  appElement.classList.remove(`is-${state}`);
+  state = value;
+  appElement.classList.add(`is-${state}`);
+}
+
+const onClick = function() {
+  if (state === 'processing') return;
+
+  const selectedFolder = dialog.showOpenDialog({
+    title: "Select a folder",
+    defaultPath: defaultPath || null,
+    properties: ['openDirectory']
+  });
+
+  if (selectedFolder) {
+    setState('processing');
+    giveFeedback('Processing...')
+
+    defaultPath = selectedFolder[0];
+    store.set('defaultPath', { defaultPath: defaultPath });
+
+    tree = jetpack.inspectTree(defaultPath);
+    console.log(tree);
+  }
+}
+
 // sanity check of the folder structure
-dropzone.onTreeUpdate = function (tree, rootNode) {
+const onTreeUpdate = function (tree, rootNode) {
   let passCheck = false;
   let cleanData = {};
 
@@ -67,7 +93,9 @@ dropzone.onTreeUpdate = function (tree, rootNode) {
     giveFeedback('Folder structure is wrong');
     return;
   }
+}
 
+const generateTemplate = function (tree, rootNode) {
   let compiledFunction;
   try {
     compiledFunction = pug.compileFile(appDir.path("app/template.pug"));
@@ -102,3 +130,10 @@ dropzone.onTreeUpdate = function (tree, rootNode) {
 
   console.log(htmlString)
 }
+
+// Set initial feedback
+giveFeedback('Click and pick a folder 👆');
+
+// show app and add event listener
+appElement.style.display = "flex";
+appElement.addEventListener('click', onClick);

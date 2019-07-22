@@ -1,3 +1,15 @@
+import { remote } from "electron";
+import jetpack from "fs-jetpack";
+import Store from '../store/store';
+
+const dialog = remote.dialog;
+const store = new Store({
+  configName: 'dropzone',
+  defaults: {
+    defautPath: '/'
+  }
+});
+
 import './dropzone.css';
 
 class DropZone {
@@ -8,12 +20,15 @@ class DropZone {
     this._feedbackDelay = null;
     this._feedbackElement = this._element.querySelector('.dropzone__message');
 
+    this.element.addEventListener('click', this.onclick.bind(this));
     this.element.addEventListener('drop', this.buildTree.bind(this));
     this.element.addEventListener('dragover', this.ondragover.bind(this));
     this.element.addEventListener('dragleave', this.ondragleave.bind(this));
     this.element.addEventListener('dragend', this.ondragend.bind(this));
 
-    this.giveFeedback('Drag a folder 👇');
+    this.defaultPath = store.get('dropzone_path');
+
+    this.giveFeedback('Click and pick a folder 👆');
   }
 
   giveFeedback(message) {
@@ -55,36 +70,25 @@ class DropZone {
     }
   }
 
-  ondragover(event) {
-    event.preventDefault();
+  onclick(event) {
+    if (this.state === 'processing') return;
 
-    if (this.state === 'processing') {
-      this.element.classList.add('is-busy');
-      return false;
+    const selectedFolder = dialog.showOpenDialog({
+      title: "Select a folder",
+      defaultPath: this.defaultPath || null,
+      properties: ['openDirectory']
+    });
+
+    if (selectedFolder) {
+      this.state = 'processing';
+      this.element.classList.add('is-processing');
+
+      this.defaultPath = selectedFolder[0];
+      store.set('defaultPath', { defaultPath: this.defaultPath });
+
+      this.tree = jetpack.inspectTree(this.defaultPath);
     }
-
-    if (this.state !== 'over') {
-      this.state = 'over';
-      this.giveFeedback('Oohh yeah, drop it good 🤤');
-      this.element.classList.add('is-over');
-    }
-
-    return false;
-  };
-
-  ondragleave(event) {
-    event.preventDefault();
-
-    this.element.classList.remove('is-over', 'is-busy');
-    return false;
-  };
-
-  ondragend(event) {
-    event.preventDefault();
-
-    this.element.classList.remove('is-over', 'is-busy');
-    return false;
-  };
+  }
 
   async buildTree() {
     event.preventDefault();
@@ -145,7 +149,9 @@ class DropZone {
   }
 
   set state(value) {
+    this.element.classList.remove(`is-${this._state}`);
     this._state = value;
+    this.element.classList.add(`is-${this._state}`);
   }
 
   get element() {
