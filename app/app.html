@@ -5,9 +5,22 @@
   <title>Electron Boilerplate</title>
 </head>
 <body>
-
   <div id="app" class="app" style="display: none;">
-    <p class="app__feedback"></p>
+    <form class="form">
+      <label class="form__label">
+        <span class="form__label-text">Title</span>
+        <input class="form__input" name="title" type="text" />
+      </label>
+      <label class="form__label">
+        <span class="form__label-text">Client</span>
+        <input class="form__input" name="client" type="text" />
+      </label>
+      <button class="form__submit" type="submit">Choose a folder</button>
+    </form>
+  </div>
+
+  <div class="feedback">
+    <p class="feedback__message"></p>
   </div>
 
   <script src="app.js"></script>

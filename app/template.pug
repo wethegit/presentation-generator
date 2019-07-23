@@ -14,10 +14,15 @@ html
     title Title
 
   body
+    if title
+      h1=title
+    if client
+      h2=client
     ul
-      each files, folder in tree
+      each files, folder in folders
         li
           =folder
           ul
-            each fileData, fileName in files
-              li=fileName
+            each path in files
+              li
+                img(src=path)
