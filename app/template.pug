@@ -23,6 +23,7 @@ html
         li
           =folder
           ul
-            each path in files
+            each file in files
               li
-                img(src=path)
+                =file.displayName
+                img(src=file.fullPath)

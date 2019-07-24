@@ -99,7 +99,11 @@ const sanitizeFolder = function (tree) {
         for (let file of child.children) {
           if (ignore.indexOf(file.name) < 0) {
             passCheck = true;
-            cleanData[child.name].push(`./${child.name}/${file.name}`);
+            cleanData[child.name].push({
+              ...file,
+              fullPath: `./${child.name}/${file.name}`,
+              displayName: file.name.match(/([A-z])\w+/g)[0].replace('_', ' ')
+            });
           }
         }
       }
@@ -144,9 +148,10 @@ const generateTemplate = function (tree) {
     if (filename) {
       console.log(filename);
       jetpack.write(filename, htmlString);
-      giveFeedback('All done ✌️');
-      setState('');
     }
+
+    giveFeedback('All done ✌️');
+    setState('');
   });
 }
 
