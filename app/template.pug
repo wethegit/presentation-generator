@@ -15,15 +15,17 @@ html
 
   body
     if title
-      h1=title
+      h1 Title: #{title}
     if client
-      h2=client
+      h2 Client: #{client}
+    if folders.intro
+
     ul
       each files, folder in folders
         li
-          =folder
+          p <strong>Breakpoint:</strong> #{folder}
           ul
             each file in files
               li
-                =file.displayName
+                p <strong>Page:</strong> #{file.displayName}
                 img(src=file.fullPath)
