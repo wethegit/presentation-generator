@@ -102,7 +102,7 @@ const sanitizeFolder = function (tree) {
             cleanData[child.name].push({
               ...file,
               fullPath: `./${child.name}/${file.name}`,
-              displayName: file.name.match(/([A-z])\w+/g)[0].replace('_', ' ')
+              displayName: file.name.match(/([A-z])\w+/g)[0].replace(/_/g, ' ')
             });
           }
         }

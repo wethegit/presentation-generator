@@ -19,13 +19,18 @@ html
     if client
       h2 Client: #{client}
     if folders.intro
+      h3 Intro
+      each file in folders.intro
+        p #{file.displayName}
+        img(src=file.fullPath style="max-height: 300px")
 
     ul
       each files, folder in folders
-        li
-          p <strong>Breakpoint:</strong> #{folder}
-          ul
-            each file in files
-              li
-                p <strong>Page:</strong> #{file.displayName}
-                img(src=file.fullPath)
+        if folder != 'intro'
+          li
+            p <strong>Breakpoint:</strong> #{folder}
+            ul
+              each file in files
+                li
+                  p <strong>Page:</strong> #{file.displayName}
+                  img(src=file.fullPath style="max-height: 300px")
