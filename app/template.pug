@@ -18,19 +18,19 @@ html
       h1 Title: #{title}
     if client
       h2 Client: #{client}
-    if folders.intro
-      h3 Intro
-      each file in folders.intro
-        p #{file.displayName}
-        img(src=file.fullPath style="max-height: 300px")
+    if logo
+      img(src='./logo.png')
 
     ul
-      each files, folder in folders
-        if folder != 'intro'
-          li
-            p <strong>Breakpoint:</strong> #{folder}
-            ul
-              each file in files
-                li
-                  p <strong>Page:</strong> #{file.displayName}
-                  img(src=file.fullPath style="max-height: 300px")
+      each breakpoint in breakpoints
+        li
+          p <strong>Breakpoint:</strong> #{breakpoint.displayName}
+
+    ul
+      each concept in concepts
+        li
+          p <strong>Concept:</strong> #{concept.displayName}
+          ul
+            each page in concept.pages
+              li
+                p <strong>Page:</strong> #{page.displayName}

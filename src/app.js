@@ -28,9 +28,7 @@ const appDir = jetpack.cwd(app.getAppPath());
 const appElement = document.querySelector("#app");
 const feedbackElement = document.querySelector('.feedback');
 const feedbackMessage = feedbackElement.querySelector('.feedback__message');
-const acceptedFolders = ['mobile', 'tablet', 'desktop', 'intro'];
 const appForm = appElement.querySelector('.form');
-const ignore = ['.DS_Store'];
 
 let defaultPath = store.get('dropzone_path');
 let feedbackDelay = null;
@@ -73,39 +71,108 @@ const onSubmit = function(event) {
     defaultPath = selectedFolder[0];
     store.set('defaultPath', { defaultPath: defaultPath });
 
-    let tree = {};
-    tree.folders = sanitizeFolder(jetpack.inspectTree(defaultPath));
+    let tree = {
+      ...sanitizeFolder(jetpack.inspectTree(defaultPath))
+    }
 
     const formData = new FormData(appForm);
     for (let [key, value] of formData.entries()) {
       tree[key] = value;
     }
 
+    // save to a json file
     console.log(tree);
+    jetpack.write(`${defaultPath}/index.json`, tree);
+
     generateTemplate(tree);
   }
 }
 
+const cleanName = function (name) {
+  return capitalize(name.replace(/_/g, ' '));
+}
+
+const capitalize = function(name) {
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
 // sanity check of the folder structure
 const sanitizeFolder = function (tree) {
+  const breakpoints = ['mobile', 'tablet', 'desktop'];
+  const ignore = ['.DS_Store'];
+
   let passCheck = false;
-  let cleanData = {};
+  let cleanData = {
+    "date-generated": Date.now(),
+    concepts: {},
+    breakpoints: {}
+  };
 
   for (let child of tree.children) {
-    if (acceptedFolders.indexOf(child.name.toLowerCase()) >= 0) {
-      if (child.children) {
-        cleanData[child.name] = cleanData[child.name] || [];
+    // Root files
+    if (child.type === "file" && ignore.indexOf(child.name) < 0) {
+      if (child.name === 'logo.png') {
+        cleanData.logo = true;
+        continue;
+      }
 
-        for (let file of child.children) {
-          if (ignore.indexOf(file.name) < 0) {
-            passCheck = true;
-            cleanData[child.name].push({
-              ...file,
-              fullPath: `./${child.name}/${file.name}`,
-              displayName: file.name.match(/([A-z])\w+/g)[0].replace(/_/g, ' ')
-            });
+      continue;
+    }
+
+    if (child.name.match(/concept_([0-9])+/g)) {
+      if (child.children) {
+        let concept = {
+          displayName: cleanName(child.name),
+          pages: {}
+        }
+
+        for (let conceptChild of child.children) {
+          if (conceptChild.type === "file" && ignore.indexOf(conceptChild.name) < 0) {
+            if (conceptChild.name === 'moodboard.jpg') {
+              concept.moodboard = true;
+              continue;
+            }
+
+            continue;
+          }
+
+          if (breakpoints.indexOf(conceptChild.name.toLowerCase()) >= 0) {
+            if (conceptChild.children) {
+              let breakpointKey = conceptChild.name;
+
+              if (!cleanData.breakpoints[breakpointKey]) {
+                cleanData.breakpoints[breakpointKey] = {
+                  displayName: cleanName(breakpointKey)
+                }
+              }
+
+              for (let breakpointChild of conceptChild.children) {
+                if (ignore.indexOf(breakpointChild.name) < 0) {
+                  if (concept.pages[breakpointChild.name]) {
+                    concept.pages[breakpointChild.name].breakpoints[breakpointKey] = {
+                      ...breakpointChild
+                    }
+                    continue;
+                  }
+
+                  concept.pages[breakpointChild.name] = {
+                    displayName: cleanName(breakpointChild.name.match(/([A-z])\w+/g)[0]),
+                    // fullPath: `./${child.name}/${file.name}`,
+                    breakpoints: {
+                      [breakpointKey]: {
+                        ...breakpointChild
+                      }
+                    }
+                  }
+
+                  passCheck = true;
+                }
+              }
+            }
           }
         }
+
+        cleanData.concepts[child.name] = concept;
       }
     }
   }
@@ -141,18 +208,9 @@ const generateTemplate = function (tree) {
     return;
   }
 
-  dialog.showSaveDialog({
-    title: 'Save file',
-    defaultPath: `${defaultPath}/index.html`
-  }, (filename) => {
-    if (filename) {
-      console.log(filename);
-      jetpack.write(filename, htmlString);
-    }
-
-    giveFeedback('All done ✌️');
-    setState('');
-  });
+  jetpack.write(`${defaultPath}/index.html`, htmlString);
+  giveFeedback('All done ✌️');
+  setState('');
 }
 
 // show app and add event listener
