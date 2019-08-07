@@ -10,6 +10,7 @@ import "./helpers/external_links.js";
 
 // Main styles
 import "./stylesheets/main.css";
+import { start } from "repl";
 
 const dialog = remote.dialog;
 const app = remote.app;
@@ -81,7 +82,26 @@ const onSubmit = function(event) {
 
     // save to a json file
     console.log(tree);
-    jetpack.write(`${defaultPath}/index.json`, tree);
+    jetpack.write(`${defaultPath}/presentation-assets/index.json`, tree);
+
+    // save assets
+    const filesToCopy = [
+      "background.jpg",
+      "index.css",
+      "index.js",
+      "index.pug",
+      "pattern.png",
+      "phone-frame.png",
+      "tablet-frame.png"
+    ];
+
+    for (let file of filesToCopy) {
+      jetpack.copy(
+        appDir.path(`app/template/${file}`),
+        `${defaultPath}/presentation-assets/${file}`,
+        { overwrite: true }
+      );
+    }
 
     generateTemplate(tree);
   }
@@ -196,7 +216,12 @@ const sanitizeFolder = function(tree) {
 const generateTemplate = function(tree) {
   let compiledFunction;
   try {
-    compiledFunction = pug.compileFile(appDir.path("app/template.pug"));
+    const template = appDir.path("app/template/index.pug");
+    let htmlString = jetpack.read(template, "utf8");
+
+    htmlString = htmlString.replace(/##TREE##/g, JSON.stringify(tree));
+
+    compiledFunction = pug.compile(htmlString);
   } catch (error) {
     giveFeedback("Error while compiling template, try again.");
     console.log(error);
