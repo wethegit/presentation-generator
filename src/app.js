@@ -89,7 +89,6 @@ const onSubmit = function(event) {
       "background.jpg",
       "index.css",
       "index.js",
-      "index.pug",
       "pattern.png",
       "phone-frame.png",
       "tablet-frame.png"
