@@ -22,15 +22,12 @@ const getFirstPageFirstConcept = function(withCurrentBreakpoint) {
   const concept = tree.concepts[conceptId];
 
   if (!withCurrentBreakpoint) {
-    const pageId = Object.keys(concept.pages)[0];
-    const page = concept.pages[pageId];
-
-    return page;
+    return Object.keys(concept.pages)[0];
   } else {
     let result;
     for (let [pageId, page] of Object.entries(concept.pages)) {
       if (page.breakpoints.indexOf(currentBreakpoint) >= 0) {
-        result = page;
+        result = pageId;
         break;
       }
     }
@@ -45,7 +42,7 @@ const SHOWCASE = document.querySelector(".showcase");
 const SHOWCASE_IMAGE = SHOWCASE.querySelector(".showcase__image");
 const SIDEBAR = document.querySelector(".sidebar");
 let tree = JSON.parse(window.TREE);
-let currentBreakpoint, currentPage;
+let currentBreakpoint, currentPage, currentConcept;
 
 const initConcepts = async function() {
   const CONCEPTS = document.querySelector(".concepts");
@@ -97,7 +94,7 @@ const initConcepts = async function() {
       );
       button.innerHTML = page.displayName;
       button.addEventListener("click", function() {
-        goToPage(page);
+        goToPage(pageId);
       });
 
       li.appendChild(button);
@@ -127,12 +124,48 @@ const goToMoodboard = function(conceptId) {
   console.log(tree.concepts[conceptId]);
 };
 
-const goToPage = function(page) {
-  if (currentPage) {
-    currentPage.button.classList.remove("is-active");
-    currentPage.button.removeAttribute("disabled");
+const goToPage = function(pageId) {
+  if (pageId === "next" || pageId === "prev") {
+    // next page
+    const pageKeys = Object.keys(tree.concepts[currentConcept].pages);
+    const nextKey =
+      pageKeys[pageKeys.indexOf(currentPage) + (pageId === "next" ? 1 : -1)];
+
+    if (
+      nextKey &&
+      tree.concepts[currentConcept].pages[nextKey].breakpoints[
+        currentBreakpoint
+      ]
+    )
+      pageId = nextKey;
+    else {
+      const conceptKeys = Object.keys(tree.concepts);
+      const nextConceptKey =
+        conceptKeys[
+          conceptKeys.indexOf(currentConcept) + (pageId === "next" ? 1 : -1)
+        ];
+
+      if (!nextConceptKey) return;
+
+      const pageKeys = Object.keys(tree.concepts[nextConceptKey].pages);
+      pageId = pageKeys[pageId === "next" ? 0 : pageKeys.length - 1];
+    }
   }
 
+  // toggle classes
+  if (currentPage) {
+    const page = tree.concepts[currentConcept].pages[currentPage];
+    page.button.classList.remove("is-active");
+    console.log(Object.keys(page.breakpoints).indexOf(currentBreakpoint));
+    if (Object.keys(page.breakpoints).indexOf(currentBreakpoint) >= 0) {
+      page.button.removeAttribute("disabled");
+    } else {
+      page.button.setAttribute("disabled", true);
+    }
+  }
+
+  // change image and toggle class
+  const page = tree.concepts[currentConcept].pages[pageId];
   SHOWCASE_IMAGE.setAttribute(
     "src",
     page.breakpoints[currentBreakpoint].fullPath
@@ -140,13 +173,19 @@ const goToPage = function(page) {
   page.button.classList.add("is-active");
   page.button.setAttribute("disabled", true);
 
-  currentPage = page;
+  // saves id
+  currentPage = pageId;
 };
 
 const goToBreakpoint = function(breakpointId) {
-  // toggle some classes
-  if (breakpointId === currentBreakpoint) return;
+  // if it's the same or we don't have a page with the breakpoint
+  if (
+    breakpointId === currentBreakpoint ||
+    tree.breakpoints.indexOf(breakpointId) < 0
+  )
+    return;
 
+  // toggle some classes
   if (currentBreakpoint) {
     const button = document.querySelector(
       `.breakpoints__button[data-breakpoint="${currentBreakpoint}"]`
@@ -165,7 +204,7 @@ const goToBreakpoint = function(breakpointId) {
 
   SHOWCASE.classList.add(`showcase--${breakpointId}`);
 
-  // saves the new button
+  // saves it
   currentBreakpoint = breakpointId;
 
   // if we are on a moodboard currentPage is empty
@@ -177,19 +216,20 @@ const goToBreakpoint = function(breakpointId) {
   for (let [key, value] of Object.entries(tree.concepts)) {
     for (let [pageId, page] of Object.entries(value.pages)) {
       if (Object.keys(page.breakpoints).indexOf(breakpointId) < 0) {
+        console.log(page);
         page.button.setAttribute("disabled", true);
       } else {
         page.button.removeAttribute("disabled", true);
       }
 
-      if (!nextPage) {
-        nextPage = page;
-      }
+      if (!nextPage && key === currentConcept) nextPage = pageId;
     }
   }
 
   // if the currentPage contains the breakpoint
-  if (currentPage.breakpoints[breakpointId]) {
+  if (
+    tree.concepts[currentConcept].pages[currentPage].breakpoints[breakpointId]
+  ) {
     goToPage(currentPage);
   } else {
     goToPage(nextPage);
@@ -210,6 +250,7 @@ const begin = function() {
   }
 
   // ... else if the tree contains a desktop page go to it
+  currentConcept = Object.keys(tree.concepts)[0];
   currentPage = getFirstPageFirstConcept();
   if (tree.breakpoints.indexOf("desktop")) {
     goToBreakpoint("desktop");
@@ -222,6 +263,40 @@ const begin = function() {
 
 const toggleSidebar = function() {
   SIDEBAR.classList.toggle("sidebar--hidden");
+};
+
+const handleKeyUp = function(event) {
+  const keyCode = event.keyCode;
+  console.log(keyCode);
+  switch (keyCode) {
+    // 1
+    case 49:
+      goToBreakpoint("desktop");
+      break;
+
+    // 2
+    case 50:
+      goToBreakpoint("tablet");
+      break;
+
+    // 3
+    case 51:
+      goToBreakpoint("mobile");
+      break;
+
+    // right
+    case 39:
+      goToPage("next");
+      break;
+
+    // left
+    case 37:
+      goToPage("prev");
+      break;
+
+    default:
+      break;
+  }
 };
 
 const init = async function() {
@@ -237,6 +312,8 @@ const init = async function() {
   // sidebar toggler
   const SIDEBAR_TOGGLER = SIDEBAR.querySelector(".sidebar__toggler");
   SIDEBAR_TOGGLER.addEventListener("click", toggleSidebar);
+
+  document.addEventListener("keyup", handleKeyUp);
 };
 
 // Start
