@@ -2,7 +2,7 @@ import * as pug from "pug";
 import { remote } from "electron";
 import jetpack from "fs-jetpack";
 // import env from "env";
-import Store from './store/store';
+import Store from "./store/store";
 
 // menus
 import "./helpers/context_menu.js";
@@ -14,9 +14,9 @@ import "./stylesheets/main.css";
 const dialog = remote.dialog;
 const app = remote.app;
 const store = new Store({
-  configName: 'app',
+  configName: "app",
   defaults: {
-    defautPath: '/'
+    defautPath: "/"
   }
 });
 
@@ -26,54 +26,53 @@ const appDir = jetpack.cwd(app.getAppPath());
 
 // Start of the app
 const appElement = document.querySelector("#app");
-const feedbackElement = document.querySelector('.feedback');
-const feedbackMessage = feedbackElement.querySelector('.feedback__message');
-const appForm = appElement.querySelector('.form');
+const feedbackElement = document.querySelector(".feedback");
+const feedbackMessage = feedbackElement.querySelector(".feedback__message");
+const appForm = appElement.querySelector(".form");
 
-let defaultPath = store.get('dropzone_path');
+let defaultPath = store.get("dropzone_path");
 let feedbackDelay = null;
-let state = 'idle';
+let state = "idle";
 
 const giveFeedback = function(message, autoRemove = true) {
   clearTimeout(feedbackDelay);
-  feedbackElement.classList.add('is-visible');
+  feedbackElement.classList.add("is-visible");
   feedbackMessage.innerHTML = message;
 
   if (autoRemove) {
     feedbackDelay = setTimeout(() => {
-      feedbackElement.classList.remove('is-visible');
+      feedbackElement.classList.remove("is-visible");
     }, 2000);
   }
-}
+};
 
 const setState = function(value) {
   appElement.classList.remove(`is-${state}`);
   state = value;
-  if (value)
-    appElement.classList.add(`is-${state}`);
-}
+  if (value) appElement.classList.add(`is-${state}`);
+};
 
 const onSubmit = function(event) {
   event.preventDefault();
 
-  if (state === 'processing') return;
+  if (state === "processing") return;
 
   const selectedFolder = dialog.showOpenDialog({
     title: "Select a folder",
     defaultPath: defaultPath || null,
-    properties: ['openDirectory']
+    properties: ["openDirectory"]
   });
 
   if (selectedFolder) {
-    setState('processing');
-    giveFeedback('Processing...', false);
+    setState("processing");
+    giveFeedback("Processing...", false);
 
     defaultPath = selectedFolder[0];
-    store.set('defaultPath', { defaultPath: defaultPath });
+    store.set("defaultPath", { defaultPath: defaultPath });
 
     let tree = {
       ...sanitizeFolder(jetpack.inspectTree(defaultPath))
-    }
+    };
 
     const formData = new FormData(appForm);
     for (let [key, value] of formData.entries()) {
@@ -86,32 +85,32 @@ const onSubmit = function(event) {
 
     generateTemplate(tree);
   }
-}
+};
 
-const cleanName = function (name) {
-  return capitalize(name.replace(/_/g, ' '));
-}
+const cleanName = function(name) {
+  return capitalize(name.replace(/_/g, " "));
+};
 
 const capitalize = function(name) {
   return name.charAt(0).toUpperCase() + name.slice(1);
-}
+};
 
 // sanity check of the folder structure
-const sanitizeFolder = function (tree) {
-  const breakpoints = ['mobile', 'tablet', 'desktop'];
-  const ignore = ['.DS_Store'];
+const sanitizeFolder = function(tree) {
+  const breakpoints = ["mobile", "tablet", "desktop"];
+  const ignore = [".DS_Store"];
 
   let passCheck = false;
   let cleanData = {
-    "date-generated": Date.now(),
+    date_generated: new Date(),
     concepts: {},
-    breakpoints: {}
+    breakpoints: []
   };
 
   for (let child of tree.children) {
     // Root files
     if (child.type === "file" && ignore.indexOf(child.name) < 0) {
-      if (child.name === 'logo.png') {
+      if (child.name === "logo.png") {
         cleanData.logo = true;
         continue;
       }
@@ -124,11 +123,14 @@ const sanitizeFolder = function (tree) {
         let concept = {
           displayName: cleanName(child.name),
           pages: {}
-        }
+        };
 
         for (let conceptChild of child.children) {
-          if (conceptChild.type === "file" && ignore.indexOf(conceptChild.name) < 0) {
-            if (conceptChild.name === 'moodboard.jpg') {
+          if (
+            conceptChild.type === "file" &&
+            ignore.indexOf(conceptChild.name) < 0
+          ) {
+            if (conceptChild.name === "moodboard.jpg") {
               concept.moodboard = true;
               continue;
             }
@@ -140,30 +142,36 @@ const sanitizeFolder = function (tree) {
             if (conceptChild.children) {
               let breakpointKey = conceptChild.name;
 
-              if (!cleanData.breakpoints[breakpointKey]) {
-                cleanData.breakpoints[breakpointKey] = {
-                  displayName: cleanName(breakpointKey)
-                }
-              }
+              if (cleanData.breakpoints.indexOf(breakpointKey) < 0)
+                cleanData.breakpoints.push(breakpointKey);
 
               for (let breakpointChild of conceptChild.children) {
                 if (ignore.indexOf(breakpointChild.name) < 0) {
+                  const fullPath = `${child.name}/${conceptChild.name}/${
+                    breakpointChild.name
+                  }`;
+
                   if (concept.pages[breakpointChild.name]) {
-                    concept.pages[breakpointChild.name].breakpoints[breakpointKey] = {
+                    concept.pages[breakpointChild.name].breakpoints[
+                      breakpointKey
+                    ] = {
+                      fullPath,
                       ...breakpointChild
-                    }
+                    };
                     continue;
                   }
 
                   concept.pages[breakpointChild.name] = {
-                    displayName: cleanName(breakpointChild.name.match(/([A-z])\w+/g)[0]),
-                    // fullPath: `./${child.name}/${file.name}`,
+                    displayName: cleanName(
+                      breakpointChild.name.match(/([A-z])\w+/g)[0]
+                    ),
                     breakpoints: {
                       [breakpointKey]: {
+                        fullPath,
                         ...breakpointChild
                       }
                     }
-                  }
+                  };
 
                   passCheck = true;
                 }
@@ -178,19 +186,19 @@ const sanitizeFolder = function (tree) {
   }
 
   if (!passCheck) {
-    giveFeedback('Folder structure is wrong');
+    giveFeedback("Folder structure is wrong");
     return;
   }
 
   return cleanData;
-}
+};
 
-const generateTemplate = function (tree) {
+const generateTemplate = function(tree) {
   let compiledFunction;
   try {
     compiledFunction = pug.compileFile(appDir.path("app/template.pug"));
   } catch (error) {
-    giveFeedback('Error while compiling template, try again.');
+    giveFeedback("Error while compiling template, try again.");
     console.log(error);
     return;
   }
@@ -203,17 +211,17 @@ const generateTemplate = function (tree) {
   try {
     htmlString = compiledFunction(data);
   } catch (error) {
-    giveFeedback('Error while generating HTML, please try again.');
+    giveFeedback("Error while generating HTML, please try again.");
     console.log(error);
     return;
   }
 
   jetpack.write(`${defaultPath}/index.html`, htmlString);
-  giveFeedback('All done ✌️');
-  setState('');
-}
+  giveFeedback("All done ✌️");
+  setState("");
+};
 
 // show app and add event listener
 appElement.style.display = "flex";
 
-appForm.addEventListener('submit', onSubmit);
+appForm.addEventListener("submit", onSubmit);
