@@ -369,10 +369,6 @@ p.concepts__button:focus {
   background: url("./phone-frame.png") center center/contain no-repeat;
 }
 
-.showcase--mobile .showcase__content {
-  border-radius: 27px;
-}
-
 .showcase--tablet .showcase__frame {
   width: 730px;
   height: 993px;
@@ -383,10 +379,21 @@ p.concepts__button:focus {
   background: url("./tablet-frame.png") center center/contain no-repeat;
 }
 
-.showcase--tablet .showcase__content {
-  border-radius: 20px;
+@media screen and (max-height: 1000px) {
+  .showcase--tablet .showcase__frame {
+    width: 540px;
+    height: 763px;
+    padding: 49px 51px 65px 35px;
+  }
 }
 
+@media screen and (max-height: 900px) {
+  .showcase--mobile .showcase__frame {
+    width: 389px;
+    height: 769px;
+    padding: 37px 40px 60px 23px;
+  }
+}
 /* ------------------ screen */
 .screen {
   height: 100%;

@@ -121,7 +121,7 @@ const initBreakpoints = function() {
 };
 
 const goToMoodboard = function(conceptId) {
-  console.log(tree.concepts[conceptId]);
+  console.log('moodboard');
 };
 
 const goToPage = function(pageId) {
@@ -156,7 +156,7 @@ const goToPage = function(pageId) {
   if (currentPage) {
     const page = tree.concepts[currentConcept].pages[currentPage];
     page.button.classList.remove("is-active");
-    console.log(Object.keys(page.breakpoints).indexOf(currentBreakpoint));
+
     if (Object.keys(page.breakpoints).indexOf(currentBreakpoint) >= 0) {
       page.button.removeAttribute("disabled");
     } else {
@@ -216,7 +216,6 @@ const goToBreakpoint = function(breakpointId) {
   for (let [key, value] of Object.entries(tree.concepts)) {
     for (let [pageId, page] of Object.entries(value.pages)) {
       if (Object.keys(page.breakpoints).indexOf(breakpointId) < 0) {
-        console.log(page);
         page.button.setAttribute("disabled", true);
       } else {
         page.button.removeAttribute("disabled", true);
@@ -267,7 +266,6 @@ const toggleSidebar = function() {
 
 const handleKeyUp = function(event) {
   const keyCode = event.keyCode;
-  console.log(keyCode);
   switch (keyCode) {
     // 1
     case 49:
