@@ -14,6 +14,7 @@ import { start } from "repl";
 
 const dialog = remote.dialog;
 const app = remote.app;
+const shell = remote.shell;
 const store = new Store({
   configName: "app",
   defaults: {
@@ -242,7 +243,8 @@ const generateTemplate = function(tree) {
   }
 
   jetpack.write(`${defaultPath}/index.html`, htmlString);
-  giveFeedback("All done ✌️");
+  giveFeedback("Finished");
+  shell.showItemInFolder(defaultPath);
   setState("");
 };
 
