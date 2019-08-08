@@ -69,7 +69,7 @@ const onSubmit = function(event) {
     giveFeedback("Processing...", false);
 
     defaultPath = selectedFolder[0];
-    store.set("defaultPath", { defaultPath: defaultPath });
+    store.set("defaultPath", defaultPath);
 
     let tree = {
       ...sanitizeFolder(jetpack.inspectTree(defaultPath))
@@ -78,6 +78,7 @@ const onSubmit = function(event) {
     const formData = new FormData(appForm);
     for (let [key, value] of formData.entries()) {
       tree[key] = value;
+      store.set(`form_${key}`, value);
     }
 
     // save to a json file
@@ -247,5 +248,9 @@ const generateTemplate = function(tree) {
 
 // show app and add event listener
 appElement.style.display = "flex";
-
+appForm.querySelector('.form__input[name="title"]').focus();
+for(let input of appForm.querySelectorAll('input')) {
+  const storeVal = store.get(`form_${input.getAttribute('name')}`);
+  if (storeVal) input.value = storeVal;
+}
 appForm.addEventListener("submit", onSubmit);
