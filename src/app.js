@@ -116,22 +116,26 @@ const capitalize = function(name) {
   return name.charAt(0).toUpperCase() + name.slice(1);
 };
 
+const loweCaseNoExtension = function(name) {
+  return name.split('.')[0].toLowerCase();
+}
+
 // sanity check of the folder structure
 const sanitizeFolder = function(tree) {
   const breakpoints = ["mobile", "tablet", "desktop"];
-  const ignore = [".DS_Store"];
+  const ignore = [".ds_store"];
 
   let passCheck = false;
   let cleanData = {
     date_generated: new Date(),
-    concepts: {},
+    concepts: [],
     breakpoints: []
   };
 
   for (let child of tree.children) {
     // Root files
     if (child.type === "file" && ignore.indexOf(child.name) < 0) {
-      if (child.name === "logo.png") {
+      if (loweCaseNoExtension(child.name) === "logo") {
         cleanData.logo = true;
         continue;
       }
@@ -139,7 +143,7 @@ const sanitizeFolder = function(tree) {
       continue;
     }
 
-    if (child.name.match(/concept_([0-9])+/g)) {
+    if (loweCaseNoExtension(child.name).match(/concept_([0-9])+/g)) {
       if (child.children) {
         let concept = {
           displayName: cleanName(child.name),
@@ -149,19 +153,20 @@ const sanitizeFolder = function(tree) {
         for (let conceptChild of child.children) {
           if (
             conceptChild.type === "file" &&
-            ignore.indexOf(conceptChild.name) < 0
+            ignore.indexOf(conceptChild.name.toLowerCase()) < 0
           ) {
-            if (conceptChild.name === "moodboard.jpg") {
-              concept.moodboard = true;
+            console.log(conceptChild)
+            if (loweCaseNoExtension(conceptChild.name) === "moodboard") {
+              concept.moodboard = `${child.name}/${conceptChild.name}`;
               continue;
             }
 
             continue;
           }
 
-          if (breakpoints.indexOf(conceptChild.name.toLowerCase()) >= 0) {
+          if (breakpoints.indexOf(loweCaseNoExtension(conceptChild.name)) >= 0) {
             if (conceptChild.children) {
-              let breakpointKey = conceptChild.name;
+              let breakpointKey = loweCaseNoExtension(conceptChild.name);
 
               if (cleanData.breakpoints.indexOf(breakpointKey) < 0)
                 cleanData.breakpoints.push(breakpointKey);
@@ -201,7 +206,7 @@ const sanitizeFolder = function(tree) {
           }
         }
 
-        cleanData.concepts[child.name] = concept;
+        cleanData.concepts.push(concept);
       }
     }
   }

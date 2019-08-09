@@ -18,8 +18,7 @@ const createElement = function(tag, classes, attributes) {
 };
 
 const getFirstPageFirstConcept = function(withCurrentBreakpoint) {
-  const conceptId = Object.keys(tree.concepts)[0];
-  const concept = tree.concepts[conceptId];
+  const concept = tree.concepts[0];
 
   if (!withCurrentBreakpoint) {
     return Object.keys(concept.pages)[0];
@@ -36,13 +35,32 @@ const getFirstPageFirstConcept = function(withCurrentBreakpoint) {
   }
 };
 
+const setState = function(newState) {
+  _state = Object.assign({}, _state, newState);
+}
+
+const getState = function() {
+  const isMoodboard = _state.pageId === 'moodboard';
+
+  return {
+    ..._state,
+    concept: tree.concepts[_state.conceptIndex],
+    [isMoodboard ? 'moodboard' : 'page']: isMoodboard ? tree.concepts[_state.conceptIndex].moodboard : tree.concepts[_state.conceptIndex].pages[_state.pageId],
+  }
+}
+
 //
 const INTRO = document.querySelector(".intro");
 const SHOWCASE = document.querySelector(".showcase");
 const SHOWCASE_IMAGE = SHOWCASE.querySelector(".showcase__image");
 const SIDEBAR = document.querySelector(".sidebar");
-let tree = JSON.parse(window.TREE);
-let currentBreakpoint, currentPage, currentConcept;
+
+let tree = JSON.parse(window.TREE); console.log(tree);
+let _state = {
+  conceptIndex: null,
+  pageId: null,
+  breakpoint: null
+}
 
 const initConcepts = async function() {
   const CONCEPTS = document.querySelector(".concepts");
@@ -51,7 +69,7 @@ const initConcepts = async function() {
   CONCEPTS.appendChild(ul);
 
   // creates the list of concepts and pages
-  for (let [key, value] of Object.entries(tree.concepts)) {
+  tree.concepts.forEach(function(concept, index) {
     // concept item
     let li = createElement("li", "concepts__list-item");
     ul.appendChild(li);
@@ -59,17 +77,24 @@ const initConcepts = async function() {
     // concept button
     // if the concept doesnt have a moodboard, we want a simple 'p'
     let button;
-    if (!value.moodboard) button = createElement("p");
+    if (!concept.moodboard) button = createElement("p");
     else {
       // on click to go moodboard
       button = createElement("button");
       button.addEventListener("click", function() {
-        goToMoodboard(key);
+        goToMoodboard(index);
       });
+
+      // save moodboard infor and button
+      concept.moodboard = {
+        path: concept.moodboard,
+        button: button
+      };
     }
 
+    // base buttons styles
     button.classList.add("concepts__button");
-    button.innerHTML = value.displayName;
+    button.innerHTML = concept.displayName;
     li.appendChild(button);
 
     // creates the list pages
@@ -79,7 +104,7 @@ const initConcepts = async function() {
     );
     li.appendChild(pagesUl);
 
-    for (let [pageId, page] of Object.entries(value.pages)) {
+    for (let [pageId, page] of Object.entries(concept.pages)) {
       // page item
       let li = createElement(
         "li",
@@ -94,14 +119,14 @@ const initConcepts = async function() {
       );
       button.innerHTML = page.displayName;
       button.addEventListener("click", function() {
-        goToPage(pageId);
+        goToPage(index, pageId);
       });
 
       li.appendChild(button);
       // save the button on the tree
-      tree.concepts[key].pages[pageId].button = button;
+      concept.pages[pageId].button = button;
     }
-  }
+  });
 };
 
 const initBreakpoints = function() {
@@ -120,80 +145,160 @@ const initBreakpoints = function() {
   }
 };
 
-const goToMoodboard = function(conceptId) {
-  console.log('moodboard');
-};
+const resetButtons = function() {
+  const { moodboard, page, breakpoint } = getState();
 
-const goToPage = function(pageId) {
-  if (pageId === "next" || pageId === "prev") {
-    // next page
-    const pageKeys = Object.keys(tree.concepts[currentConcept].pages);
-    const nextKey =
-      pageKeys[pageKeys.indexOf(currentPage) + (pageId === "next" ? 1 : -1)];
+  if (moodboard) {
+    SHOWCASE.classList.remove('showcase--moodboard');
 
-    if (
-      nextKey &&
-      tree.concepts[currentConcept].pages[nextKey].breakpoints[
-        currentBreakpoint
-      ]
-    )
-      pageId = nextKey;
-    else {
-      const conceptKeys = Object.keys(tree.concepts);
-      const nextConceptKey =
-        conceptKeys[
-          conceptKeys.indexOf(currentConcept) + (pageId === "next" ? 1 : -1)
-        ];
-
-      if (!nextConceptKey) return;
-
-      const pageKeys = Object.keys(tree.concepts[nextConceptKey].pages);
-      pageId = pageKeys[pageId === "next" ? 0 : pageKeys.length - 1];
-    }
+    moodboard.button.classList.remove('is-active');
+    moodboard.button.removeAttribute('disabled');
   }
-
-  // toggle classes
-  if (currentPage) {
-    const page = tree.concepts[currentConcept].pages[currentPage];
+  else {
     page.button.classList.remove("is-active");
 
-    if (Object.keys(page.breakpoints).indexOf(currentBreakpoint) >= 0) {
+    if (Object.keys(page.breakpoints).indexOf(breakpoint) >= 0)
       page.button.removeAttribute("disabled");
-    } else {
+    else
       page.button.setAttribute("disabled", true);
-    }
   }
+}
 
-  // change image and toggle class
-  const page = tree.concepts[currentConcept].pages[pageId];
+const goToMoodboard = function(index) {
+  const { conceptIndex } = getState();
+
+  // no concept we use the current one
+  if (index === undefined) index = conceptIndex;
+
+  const concept = tree.concepts[index];
+  // return if it doesn't have a moodboard
+  if (!concept.moodboard) return;
+
+  // reset the buttons
+  resetButtons();
+
+  const mood = concept.moodboard;
+  SHOWCASE.classList.add('showcase--moodboard');
   SHOWCASE_IMAGE.setAttribute(
     "src",
-    page.breakpoints[currentBreakpoint].fullPath
+    mood.path
+  );
+
+  mood.button.setAttribute('disabled', true);
+  mood.button.classList.add('is-active');
+
+  setState({
+    conceptIndex: index,
+    pageId: 'moodboard'
+  });
+};
+
+const goToPage = function(conceptIndex, pageId, breakpoint) {
+  const state = getState();
+  let direction, concept, page;
+
+  if (!pageId) pageId = state.pageId;
+  if (!breakpoint) {
+    if(!state.breakpoint) {
+      breakpoint = 'desktop';
+      goToBreakpoint(breakpoint);
+    }
+    else breakpoint = state.breakpoint;
+  }
+
+  const move = function() {
+    // next page
+    const pageKeys = Object.keys(state.concept.pages);
+    const nextKey = pageKeys[pageKeys.indexOf(pageId) + direction];
+
+    if (!nextKey) {
+      const nextConceptKey = conceptIndex + direction;
+      if (nextConceptKey >= tree.concepts.length) {
+        conceptIndex = -1;
+        return;
+      }
+
+      const pageKeys = Object.keys(tree.concepts[nextConceptKey].pages);
+      pageId = pageKeys[direction > 0 ? 0 : pageKeys.length - 1];
+      conceptIndex = nextConceptKey;
+    }
+    else pageId = nextKey;
+
+    if (!tree.concepts[conceptIndex].pages[pageId].breakpoints[breakpoint]) move();
+  }
+
+  if (conceptIndex === "next" || conceptIndex === "prev") {
+    direction = conceptIndex === "next" ? 1 : -1;
+    conceptIndex = state.conceptIndex;
+
+    move();
+  }
+
+  if (conceptIndex < 0 || !pageId) return;
+
+  page = tree.concepts[conceptIndex].pages[pageId];
+
+  let nextPageId;
+  let fallbackPage, fallbackConcept;
+  if (!page.breakpoints[breakpoint]) {
+    tree.concepts.forEach((concept, index) => {
+      for (let [pageId, page] of Object.entries(concept.pages)) {
+        if(!fallbackPage && page.breakpoints[breakpoint]) {
+          fallbackConcept = index;
+          fallbackPage = pageId;
+        }
+
+        if (index === conceptIndex && page.breakpoints[breakpoint]) {
+          nextPageId = pageId;
+        }
+      }
+    });
+
+    if (nextPageId) pageId = nextPageId;
+    else {
+      pageId = fallbackPage;
+      conceptIndex = fallbackConcept;
+    }
+
+    page = tree.concepts[conceptIndex].pages[pageId];
+  }
+
+  resetButtons();
+
+  // change image and toggle class
+  SHOWCASE_IMAGE.setAttribute(
+    "src",
+    page.breakpoints[breakpoint].fullPath
   );
   page.button.classList.add("is-active");
   page.button.setAttribute("disabled", true);
 
   // saves id
-  currentPage = pageId;
+  setState({
+    conceptIndex,
+    pageId,
+    breakpoint
+  });
 };
 
 const goToBreakpoint = function(breakpointId) {
+  const { breakpoint, page, conceptIndex, concept, pageId } = getState();
   // if it's the same or we don't have a page with the breakpoint
   if (
-    breakpointId === currentBreakpoint ||
+    breakpointId === breakpoint ||
     tree.breakpoints.indexOf(breakpointId) < 0
   )
     return;
 
   // toggle some classes
-  if (currentBreakpoint) {
+  if (breakpoint) {
     const button = document.querySelector(
-      `.breakpoints__button[data-breakpoint="${currentBreakpoint}"]`
+      `.breakpoints__button[data-breakpoint="${breakpoint}"]`
     );
     button.classList.remove("is-active");
     button.removeAttribute("disabled");
 
-    SHOWCASE.classList.remove(`showcase--${currentBreakpoint}`);
+    SHOWCASE.classList.remove(`showcase--${breakpoint}`);
   }
 
   const button = document.querySelector(
@@ -205,34 +310,27 @@ const goToBreakpoint = function(breakpointId) {
   SHOWCASE.classList.add(`showcase--${breakpointId}`);
 
   // saves it
-  currentBreakpoint = breakpointId;
+  setState({
+    breakpoint: breakpointId
+  });
 
-  // if we are on a moodboard currentPage is empty
-  if (!currentPage) return;
-
-  let nextPage;
   // go through the list of pages and disable the buttons that don't have this breakpoint
   // also save a fallback page to use in case the currentPage doesn't have this breakpoint
-  for (let [key, value] of Object.entries(tree.concepts)) {
-    for (let [pageId, page] of Object.entries(value.pages)) {
+  tree.concepts.forEach(function(concept, index) {
+    for (let [pageId, page] of Object.entries(concept.pages)) {
       if (Object.keys(page.breakpoints).indexOf(breakpointId) < 0) {
         page.button.setAttribute("disabled", true);
       } else {
         page.button.removeAttribute("disabled", true);
       }
-
-      if (!nextPage && key === currentConcept) nextPage = pageId;
     }
-  }
+  });
 
+  if (!page || !page.breakpoints[breakpointId])
+    goToPage(conceptIndex, Object.keys(concept.pages)[0], breakpointId);
   // if the currentPage contains the breakpoint
-  if (
-    tree.concepts[currentConcept].pages[currentPage].breakpoints[breakpointId]
-  ) {
-    goToPage(currentPage);
-  } else {
-    goToPage(nextPage);
-  }
+  else
+    goToPage(conceptIndex, pageId, breakpointId);
 };
 
 const begin = function() {
@@ -241,23 +339,26 @@ const begin = function() {
   SHOWCASE.classList.toggle("screen--hidden");
 
   // if the first concept has a moodboard go to it
-  const key = Object.keys(tree.concepts)[0];
-  const value = tree.concepts[key];
-  if (value.moodboard) {
-    goToMoodboard(key);
+  const concept = tree.concepts[0];
+  if (concept.moodboard) {
+    setState({
+      conceptIndex: 0,
+      pageId: 'moodboard'
+    });
+
+    goToMoodboard();
     return;
   }
+  else {
+    // ... else if the tree contains a desktop page go to it
+    if (tree.breakpoints.indexOf("desktop")) {
+      goToBreakpoint("desktop");
+      return;
+    }
 
-  // ... else if the tree contains a desktop page go to it
-  currentConcept = Object.keys(tree.concepts)[0];
-  currentPage = getFirstPageFirstConcept();
-  if (tree.breakpoints.indexOf("desktop")) {
-    goToBreakpoint("desktop");
-    return;
+    // ... otherwise go to the first breakpoint available
+    goToBreakpoint(tree.breakpoints[0]);
   }
-
-  // ... otherwise go to the first breakpoint available
-  goToBreakpoint(tree.breakpoints[0]);
 };
 
 const toggleSidebar = function() {
