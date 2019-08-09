@@ -1,8 +1,8 @@
 {
   "name": "presentation-generator",
-  "productName": "WTC Presentation Generator",
+  "productName": "Presentation Station",
   "description": "A simple app that generates presentations based on a folder structure.",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "author": "Marlon Marcello <marlon.marcello@gmail.com>",
   "copyright": "© 2019, we { the collective }",
   "homepage": "http://wethecollective.com",
