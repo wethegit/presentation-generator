@@ -223,6 +223,7 @@ ul {
 
 .intro__logo {
   margin-bottom: 30px;
+  max-width: 500px;
 }
 
 .intro__title,

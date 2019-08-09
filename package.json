@@ -2,7 +2,7 @@
   "name": "presentation-generator",
   "productName": "WTC Presentation Generator",
   "description": "A simple app that generates presentations based on a folder structure.",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "author": "Marlon Marcello <marlon.marcello@gmail.com>",
   "copyright": "© 2019, we { the collective }",
   "homepage": "http://wethecollective.com",
@@ -14,11 +14,16 @@
     "publish": "build -p always"
   },
   "build": {
-    "appId": "com.electron.presentation-generator",
+    "appId": "com.github.wethegit.presentationgenerator",
     "copyright": "Copyright © 2019 we { the collective }",
     "directories": {
       "buildResources": "resources"
     },
+    "publish": [{
+      "provider": "github",
+      "owner": "wethegit",
+      "repo": "presentation-generator"
+    }],
     "files": [
       "app/**/*",
       "node_modules/**/*",

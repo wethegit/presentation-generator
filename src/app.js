@@ -155,7 +155,6 @@ const sanitizeFolder = function(tree) {
             conceptChild.type === "file" &&
             ignore.indexOf(conceptChild.name.toLowerCase()) < 0
           ) {
-            console.log(conceptChild)
             if (loweCaseNoExtension(conceptChild.name) === "moodboard") {
               concept.moodboard = `${child.name}/${conceptChild.name}`;
               continue;
@@ -247,9 +246,10 @@ const generateTemplate = function(tree) {
     return;
   }
 
-  jetpack.write(`${defaultPath}/index.html`, htmlString);
+  const indexPath = `${defaultPath}/index.html`;
+  jetpack.write(indexPath, htmlString);
   giveFeedback("Finished");
-  shell.showItemInFolder(defaultPath);
+  shell.showItemInFolder(indexPath);
   setState("");
 };
 

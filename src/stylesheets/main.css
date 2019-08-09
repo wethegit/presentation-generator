@@ -128,7 +128,6 @@ input, button {
   margin: 0 auto;
   color: var(--c-primary);
   padding: 11px 40px 12px;
-  margin-top: 50px;
   cursor: pointer;
 }
 
