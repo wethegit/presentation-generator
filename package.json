@@ -2,7 +2,7 @@
   "name": "presentation-generator",
   "productName": "WTC Presentation Generator",
   "description": "A simple app that generates presentations based on a folder structure.",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "author": "Marlon Marcello <marlon.marcello@gmail.com>",
   "copyright": "© 2019, we { the collective }",
   "homepage": "http://wethecollective.com",
@@ -17,6 +17,13 @@
     "copyright": "Copyright © 2019 we { the collective }",
     "directories": {
       "buildResources": "resources"
+    },
+    "mac": {
+      "category": "public.app-category.graphics-design",
+      "target": [
+        "zip",
+        "dmg"
+      ]
     },
     "publish": [
       {
