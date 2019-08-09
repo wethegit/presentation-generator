@@ -145,27 +145,78 @@ const initBreakpoints = function() {
   }
 };
 
-const resetButtons = function() {
-  const { moodboard, page, breakpoint } = getState();
+const resetMoodboardButtons = function() {
+  const { moodboard, conceptIndex } = getState();
+
+  tree.concepts.forEach(function(concept, index) {
+    if (moodboard && index === conceptIndex) {
+      concept.moodboard.button.setAttribute('disabled', true);
+      concept.moodboard.button.classList.add('is-active');
+    }
+    else {
+      concept.moodboard.button.classList.remove('is-active');
+      concept.moodboard.button.removeAttribute('disabled');
+    }
+  });
+}
+
+const resetConceptButtons = function() {
+  const { breakpoint, pageId, conceptIndex, moodboard } = getState();
 
   if (moodboard) {
-    SHOWCASE.classList.remove('showcase--moodboard');
-
-    moodboard.button.classList.remove('is-active');
-    moodboard.button.removeAttribute('disabled');
+    tree.concepts.forEach(function(concept, index) {
+      for (let [id, page] of Object.entries(concept.pages)) {
+        page.button.removeAttribute("disabled");
+        page.button.classList.remove("is-active");
+      }
+    });
   }
   else {
-    page.button.classList.remove("is-active");
+    // go through the list of pages and disable the buttons that don't have this breakpoint
+    // also save a fallback page to use in case the currentPage doesn't have this breakpoint
+    tree.concepts.forEach(function(concept, index) {
+      for (let [id, page] of Object.entries(concept.pages)) {
+        const isActive = id === pageId && index === conceptIndex;
 
-    if (Object.keys(page.breakpoints).indexOf(breakpoint) >= 0)
-      page.button.removeAttribute("disabled");
-    else
-      page.button.setAttribute("disabled", true);
+        if (isActive) {
+          page.button.setAttribute("disabled", true);
+          page.button.classList.add("is-active");
+        } else if (!page.breakpoints[breakpoint]) {
+          page.button.classList.remove("is-active");
+          page.button.setAttribute("disabled", true);
+        }
+        else {
+          page.button.removeAttribute("disabled");
+          page.button.classList.remove("is-active");
+        }
+      }
+    });
   }
 }
 
+const resetBreakpointButtons = function() {
+  const { breakpoint } = getState();
+
+  for(let button of document.querySelectorAll('.breakpoints__button')) {
+    if (breakpoint && breakpoint === button.getAttribute('data-breakpoint')) {
+      button.classList.add("is-active");
+      button.setAttribute("disabled", true);
+    }
+    else {
+      button.classList.remove("is-active");
+      button.removeAttribute("disabled");
+    }
+  }
+}
+
+const resetButtons = function() {
+  resetMoodboardButtons();
+  resetConceptButtons();
+  resetBreakpointButtons();
+}
+
 const goToMoodboard = function(index) {
-  const { conceptIndex } = getState();
+  const { conceptIndex, breakpoint } = getState();
 
   // no concept we use the current one
   if (index === undefined) index = conceptIndex;
@@ -174,28 +225,29 @@ const goToMoodboard = function(index) {
   // return if it doesn't have a moodboard
   if (!concept.moodboard) return;
 
-  // reset the buttons
-  resetButtons();
+  if (breakpoint)
+    SHOWCASE.classList.remove(`showcase--${breakpoint}`);
+
+  SHOWCASE.classList.add('showcase--moodboard');
 
   const mood = concept.moodboard;
-  SHOWCASE.classList.add('showcase--moodboard');
   SHOWCASE_IMAGE.setAttribute(
     "src",
     mood.path
   );
 
-  mood.button.setAttribute('disabled', true);
-  mood.button.classList.add('is-active');
-
   setState({
     conceptIndex: index,
-    pageId: 'moodboard'
+    pageId: 'moodboard',
+    breakpoint: null
   });
+
+  resetButtons();
 };
 
 const goToPage = function(conceptIndex, pageId, breakpoint) {
   const state = getState();
-  let direction, concept, page;
+  let direction, page;
 
   if (!pageId) pageId = state.pageId;
   if (!breakpoint) {
@@ -263,15 +315,11 @@ const goToPage = function(conceptIndex, pageId, breakpoint) {
     page = tree.concepts[conceptIndex].pages[pageId];
   }
 
-  resetButtons();
-
   // change image and toggle class
   SHOWCASE_IMAGE.setAttribute(
     "src",
     page.breakpoints[breakpoint].fullPath
   );
-  page.button.classList.add("is-active");
-  page.button.setAttribute("disabled", true);
 
   // saves id
   setState({
@@ -279,6 +327,8 @@ const goToPage = function(conceptIndex, pageId, breakpoint) {
     pageId,
     breakpoint
   });
+
+  resetButtons();
 };
 
 const goToBreakpoint = function(breakpointId) {
@@ -290,22 +340,8 @@ const goToBreakpoint = function(breakpointId) {
   )
     return;
 
-  // toggle some classes
-  if (breakpoint) {
-    const button = document.querySelector(
-      `.breakpoints__button[data-breakpoint="${breakpoint}"]`
-    );
-    button.classList.remove("is-active");
-    button.removeAttribute("disabled");
-
+  if (breakpoint)
     SHOWCASE.classList.remove(`showcase--${breakpoint}`);
-  }
-
-  const button = document.querySelector(
-    `.breakpoints__button[data-breakpoint="${breakpointId}"]`
-  );
-  button.classList.add("is-active");
-  button.setAttribute("disabled", true);
 
   SHOWCASE.classList.add(`showcase--${breakpointId}`);
 
@@ -314,23 +350,13 @@ const goToBreakpoint = function(breakpointId) {
     breakpoint: breakpointId
   });
 
-  // go through the list of pages and disable the buttons that don't have this breakpoint
-  // also save a fallback page to use in case the currentPage doesn't have this breakpoint
-  tree.concepts.forEach(function(concept, index) {
-    for (let [pageId, page] of Object.entries(concept.pages)) {
-      if (Object.keys(page.breakpoints).indexOf(breakpointId) < 0) {
-        page.button.setAttribute("disabled", true);
-      } else {
-        page.button.removeAttribute("disabled", true);
-      }
-    }
-  });
-
   if (!page || !page.breakpoints[breakpointId])
     goToPage(conceptIndex, Object.keys(concept.pages)[0], breakpointId);
   // if the currentPage contains the breakpoint
   else
     goToPage(conceptIndex, pageId, breakpointId);
+
+  // resetButtons();
 };
 
 const begin = function() {
@@ -367,6 +393,7 @@ const toggleSidebar = function() {
 
 const handleKeyUp = function(event) {
   const keyCode = event.keyCode;
+  console.log(keyCode)
   switch (keyCode) {
     // 1
     case 49:
@@ -391,6 +418,11 @@ const handleKeyUp = function(event) {
     // left
     case 37:
       goToPage("prev");
+      break;
+
+    // n
+    case 78:
+      toggleSidebar();
       break;
 
     default:

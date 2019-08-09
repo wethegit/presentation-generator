@@ -314,7 +314,7 @@ p.concepts__button:focus {
 
 /* ------------------ showcase */
 .showcase {
-  background: var(--c-primary) url("./background.jpg") center center;
+  background: var(--c-primary) url("./background.jpg") center center/cover;
   overflow: hidden;
 }
 
