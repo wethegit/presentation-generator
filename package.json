@@ -2,7 +2,7 @@
   "name": "presentation-generator",
   "productName": "Presentation Station",
   "description": "A simple app that generates presentations based on a folder structure.",
-  "version": "1.0.22",
+  "version": "1.0.23",
   "author": "Marlon Marcello <marlon.marcello@gmail.com>",
   "copyright": "© 2019, we { the collective }",
   "homepage": "http://wethecollective.com",
@@ -42,7 +42,8 @@
     "electron-log": "^3.0.6",
     "electron-updater": "^4.1.2",
     "fs-jetpack": "^2.1.0",
-    "pug": "^2.0.4"
+    "pug": "^2.0.4",
+    "slug": "^1.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.54",

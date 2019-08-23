@@ -7,12 +7,12 @@ import path from "path";
 import url from "url";
 import { app, Menu } from "electron";
 import { autoUpdater } from "electron-updater";
-import log from 'electron-log';
+import log from "electron-log";
 import { devMenuTemplate } from "./menu/dev_menu_template";
 import { editMenuTemplate } from "./menu/edit_menu_template";
 import { updateMenuTemplate } from "./menu/update_menu_template";
 import createWindow from "./helpers/window";
-import Store from './store/store';
+import Store from "./store/store";
 
 // Special module holding environment variables which you declared
 // in config/env_xxx.json file.
@@ -21,7 +21,7 @@ import env from "env";
 // First instantiate the class
 const store = new Store({
   // We'll call our data file 'user-preferences'
-  configName: 'user-preferences',
+  configName: "user-preferences",
   defaults: {
     // 800x600 is the default size of our window
     windowBounds: { width: 846, height: 582 }
@@ -30,13 +30,13 @@ const store = new Store({
 
 // Set up logger
 autoUpdater.logger = log;
-autoUpdater.logger.transports.file.level = 'info';
-log.info('App starting...');
+autoUpdater.logger.transports.file.level = "info";
+log.info("App starting...");
 
 const setApplicationMenu = () => {
   const menus = [editMenuTemplate];
 
-  if (process.platform === 'darwin') {
+  if (process.platform === "darwin") {
     // OS X
     menus.unshift(updateMenuTemplate);
   }
@@ -58,7 +58,7 @@ if (env.name !== "production") {
 
 app.on("ready", () => {
   // First we'll get our height and width. This will be the defaults if there wasn't anything saved
-  let { width, height } = store.get('windowBounds');
+  let { width, height } = store.get("windowBounds");
 
   setApplicationMenu();
 
@@ -72,14 +72,13 @@ app.on("ready", () => {
 
   // The BrowserWindow class extends the node.js core EventEmitter class, so we use that API
   // to listen to events on the BrowserWindow. The resize event is emitted when the window size changes.
-  mainWindow.on('resize', () => {
+  mainWindow.on("resize", () => {
     // The event doesn't pass us the window size, so we call the `getBounds` method which returns an object with
     // the height, width, and x and y coordinates.
     let { width, height } = mainWindow.getBounds();
     // Now that we have them, save them using the `set` method.
-    store.set('windowBounds', { width, height });
+    store.set("windowBounds", { width, height });
   });
-
 
   mainWindow.loadURL(
     url.format({

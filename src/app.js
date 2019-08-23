@@ -1,7 +1,7 @@
 import * as pug from "pug";
 import { remote } from "electron";
 import jetpack from "fs-jetpack";
-// import env from "env";
+import slug from "slug";
 import Store from "./store/store";
 
 // menus
@@ -117,8 +117,8 @@ const capitalize = function(name) {
 };
 
 const loweCaseNoExtension = function(name) {
-  return name.split('.')[0].toLowerCase();
-}
+  return name.split(".")[0].toLowerCase();
+};
 
 // sanity check of the folder structure
 const sanitizeFolder = function(tree) {
@@ -163,7 +163,9 @@ const sanitizeFolder = function(tree) {
             continue;
           }
 
-          if (breakpoints.indexOf(loweCaseNoExtension(conceptChild.name)) >= 0) {
+          if (
+            breakpoints.indexOf(loweCaseNoExtension(conceptChild.name)) >= 0
+          ) {
             if (conceptChild.children) {
               let breakpointKey = loweCaseNoExtension(conceptChild.name);
 
@@ -172,9 +174,7 @@ const sanitizeFolder = function(tree) {
 
               for (let breakpointChild of conceptChild.children) {
                 if (ignore.indexOf(breakpointChild.name) < 0) {
-                  const fullPath = `${child.name}/${conceptChild.name}/${
-                    breakpointChild.name
-                  }`;
+                  const fullPath = `${child.name}/${conceptChild.name}/${breakpointChild.name}`;
 
                   if (concept.pages[breakpointChild.name]) {
                     concept.pages[breakpointChild.name].breakpoints[
@@ -212,6 +212,7 @@ const sanitizeFolder = function(tree) {
 
   if (!passCheck) {
     giveFeedback("Folder structure is wrong");
+    setState("");
     return;
   }
 
@@ -242,11 +243,12 @@ const generateTemplate = function(tree) {
     htmlString = compiledFunction(data);
   } catch (error) {
     giveFeedback("Error while generating HTML, please try again.");
+    setState("");
     console.log(error);
     return;
   }
 
-  const indexPath = `${defaultPath}/index.html`;
+  const indexPath = `${defaultPath}/${slug(tree.title)}-presentation.html`;
   jetpack.write(indexPath, htmlString);
   giveFeedback("Finished");
   shell.showItemInFolder(indexPath);
@@ -256,8 +258,8 @@ const generateTemplate = function(tree) {
 // show app and add event listener
 appElement.style.display = "flex";
 appForm.querySelector('.form__input[name="title"]').focus();
-for(let input of appForm.querySelectorAll('input')) {
-  const storeVal = store.get(`form_${input.getAttribute('name')}`);
+for (let input of appForm.querySelectorAll("input")) {
+  const storeVal = store.get(`form_${input.getAttribute("name")}`);
   if (storeVal) input.value = storeVal;
 }
 appForm.addEventListener("submit", onSubmit);
