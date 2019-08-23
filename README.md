@@ -1,10 +1,12 @@
 # Quick start
 
 Make sure you have [Node.js](https://nodejs.org) installed, then type the following commands known to every Node developer...
+
 ```
-npm install
-npm start
+yarn install
+yarn start
 ```
+
 ...and you have a running desktop application on your screen.
 
 # Structure of the project
@@ -26,7 +28,7 @@ The drawback of this design is that `app` folder contains some files which shoul
 ## Starting the app
 
 ```
-npm start
+yarn start
 ```
 
 ## The build pipeline
@@ -38,6 +40,7 @@ Build process uses [Webpack](https://webpack.js.org/). The entry-points are `src
 ## Environments
 
 Environmental variables are done in a bit different way (not via `process.env`). Env files are plain JSONs in `config` directory, and build process dynamically links one of them as an `env` module. You can import it wherever in code you need access to the environment.
+
 ```js
 import env from "env";
 console.log(env.name);
@@ -47,14 +50,33 @@ console.log(env.name);
 
 Remember to respect the split between `dependencies` and `devDependencies` in `package.json` file. Your distributable app will contain modules listed in `dependencies` after running the release script.
 
-*Side note:* If the module you want to use in your app is a native one (not pure JavaScript but compiled binary) you should first  run `npm install name_of_npm_module` and then `npm run postinstall` to rebuild the module for Electron. You need to do this once after you're first time installing the module. Later on, the postinstall script will fire automatically with every `npm install`.
+_Side note:_ If the module you want to use in your app is a native one (not pure JavaScript but compiled binary) you should first run `npm install name_of_npm_module` and then `npm run postinstall` to rebuild the module for Electron. You need to do this once after you're first time installing the module. Later on, the postinstall script will fire automatically with every `npm install`.
 
 # Making a release
 
-To package your app into an installer use command:
+Requirements:
+
+1. A Github Token with read/write access to this repo.
+2. Set that token as `GH_TOKEN` on your environment, not on `.env` or `process.env` on your actuall shell.
+3. You need a Mac Developer certificate, you can get one by going to X Code and into Cetificates and making a new Mac Developer Certificate.
+
+Then to package your app into an installer follow these steps:
+
+1. Make a git tag with the new version and a title:
+
 ```
-npm run release
+git tag -a v1.0.23 -m 'Release title'
 ```
+
+2. Update `package.json` with the same version of the tag
+3. Work and commit your changes like you would normally
+4. When you are done, run:
+
+```
+yarn release
+```
+
+5. Go into Github Repo page, then go into Releases, find your release draft in there and publish it!
 
 Once the packaging process finished, the `dist` directory will contain your distributable file.
 
