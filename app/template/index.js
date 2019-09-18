@@ -57,8 +57,8 @@ const SIDEBAR = document.querySelector(".sidebar");
 
 let tree = JSON.parse(window.TREE); console.log(tree);
 let _state = {
-  conceptIndex: null,
-  pageId: null,
+  conceptIndex: 0,
+  pageId: 0,
   breakpoint: null
 }
 
@@ -149,13 +149,15 @@ const resetMoodboardButtons = function() {
   const { moodboard, conceptIndex } = getState();
 
   tree.concepts.forEach(function(concept, index) {
-    if (moodboard && index === conceptIndex) {
-      concept.moodboard.button.setAttribute('disabled', true);
-      concept.moodboard.button.classList.add('is-active');
-    }
-    else {
-      concept.moodboard.button.classList.remove('is-active');
-      concept.moodboard.button.removeAttribute('disabled');
+    if (moodboard) {
+      if (index === conceptIndex) {
+        concept.moodboard.button.setAttribute('disabled', true);
+        concept.moodboard.button.classList.add('is-active');
+      }
+      else {
+        concept.moodboard.button.classList.remove('is-active');
+        concept.moodboard.button.removeAttribute('disabled');
+      }
     }
   });
 }
