@@ -131,7 +131,7 @@ button {
   background-color: var(--c-secondary);
   border-radius: 23.5px;
   display: block;
-  margin: 5px auto 0;
+  margin: 40px auto 0;
   color: var(--c-primary);
   padding: 11px 40px 12px;
   cursor: pointer;
