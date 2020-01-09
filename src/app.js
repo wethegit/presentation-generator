@@ -134,7 +134,11 @@ const sanitizeFolder = function(tree) {
 
   for (let child of tree.children) {
     // Root files
-    if (child.type === "file" && ignore.indexOf(child.name) < 0) {
+    if (
+      child.type === "file" &&
+      ignore.indexOf(child.name.toLowerCase()) < 0 &&
+      !child.name.charAt(0) !== "."
+    ) {
       if (loweCaseNoExtension(child.name) === "logo") {
         cleanData.logo = true;
         continue;
