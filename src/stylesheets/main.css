@@ -127,15 +127,23 @@ button {
   outline: none;
 }
 
+.form__buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  margin: 40px auto 0;
+}
+
 .form__submit {
   border: none;
   background-color: var(--c-secondary);
   border-radius: 23.5px;
-  display: block;
-  margin: 40px auto 0;
   color: var(--c-primary);
   padding: 11px 40px 12px;
   cursor: pointer;
+}
+
+.form__submit:disabled {
+  opacity: 0.5;
 }
 
 .form__submit:hover,
@@ -148,4 +156,12 @@ button {
 .form__select {
   border: 0;
   width: 100%;
+}
+
+/*  */
+.title-slug {
+  display: block;
+  color: var(--c-accent-1);
+  font-size: 14px;
+  margin-top: 3px;
 }

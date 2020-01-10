@@ -36,7 +36,25 @@
               </select>
             </div>
           </label>
-          <button class="form__submit" type="submit">Choose a folder</button>
+          <label class="form__label">
+            <span class="form__label-text">Upload Url</span>
+            <input
+              class="form__input"
+              name="title-slug"
+              type="text"
+              placeholder="http://wethe.work/"
+              id="title-slug"
+            />
+          </label>
+          <!-- <div class="form__label">
+            <p class="form__label-text">
+              Upload Url:<span class="title-slug">http://wethe.work/</span>
+            </p>
+          </div> -->
+          <div class="form__buttons">
+            <button class="form__submit" type="submit">Choose a folder</button>
+            <button class="form__submit" disabled>Upload</button>
+          </div>
         </form>
       </div>
     </div>

@@ -31,10 +31,23 @@ const appElement = document.querySelector("#app");
 const feedbackElement = document.querySelector(".feedback");
 const feedbackMessage = feedbackElement.querySelector(".feedback__message");
 const appForm = appElement.querySelector(".form");
+const projectTitleInput = document.getElementById("project-title");
+const projectClientInput = document.getElementById("client");
 
 let defaultPath = store.get("dropzone_path");
 let feedbackDelay = null;
 let state = "idle";
+
+const updateUploadUrl = function() {
+  const slugEl = document.getElementById("title-slug");
+  const update = function() {
+    slugEl.value = `http://wethe.work/${projectClientInput.value}/${slug(
+      projectTitleInput.value
+    )}`;
+  };
+
+  return update;
+};
 
 const giveFeedback = function(message, autoRemove = true) {
   clearTimeout(feedbackDelay);
@@ -262,8 +275,14 @@ const generateTemplate = function(tree) {
 // show app and add event listener
 appElement.style.display = "flex";
 appForm.querySelector('.form__input[name="title"]').focus();
-for (let input of appForm.querySelectorAll("input")) {
+for (let input of appForm.querySelectorAll("input, select")) {
   const storeVal = store.get(`form_${input.getAttribute("name")}`);
   if (storeVal) input.value = storeVal;
 }
 appForm.addEventListener("submit", onSubmit);
+
+// Update upload data
+const onDataUpdate = updateUploadUrl();
+projectTitleInput.addEventListener("keyup", onDataUpdate);
+projectClientInput.addEventListener("change", onDataUpdate);
+onDataUpdate();
