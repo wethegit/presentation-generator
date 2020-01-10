@@ -1,32 +1,50 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <title>Presentation Station</title>
-  <link href='https://fonts.googleapis.com/css?family=Quicksand:500,600&display=swap' rel='stylesheet' />
-</head>
-<body>
-  <div id="app" class="app" style="display: none;">
-    <div class="app__wrapper">
-      <img class="app__logo" src="./assets/logo.svg" alt="" />
-      <form class="form">
-        <label class="form__label">
-          <span class="form__label-text">Project Title</span>
-          <input class="form__input" name="title" type="text" placeholder="New WTC Website" />
-        </label>
-        <label class="form__label">
-          <span class="form__label-text">Client Name</span>
-          <input class="form__input" name="client" type="text" placeholder="WTC" />
-        </label>
-        <button class="form__submit" type="submit">Choose a folder</button>
-      </form>
+  <head>
+    <meta charset="utf-8" />
+    <title>Presentation Station</title>
+    <link
+      href="https://fonts.googleapis.com/css?family=Quicksand:500,600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="app" class="app" style="display: none;">
+      <div class="app__wrapper">
+        <img class="app__logo" src="./assets/logo.svg" alt="" />
+        <form class="form">
+          <label class="form__label">
+            <span class="form__label-text">Project Title</span>
+            <input
+              class="form__input"
+              name="title"
+              type="text"
+              placeholder="New WTC Website"
+              id="project-title"
+            />
+          </label>
+          <label class="form__label">
+            <span class="form__label-text">Client</span>
+            <div class="form__input">
+              <select
+                class="form__input form__select"
+                name="client"
+                id="client"
+              >
+                <option value="noa" selected>Nintendo</option>
+                <option value="tpci">Pokémon</option>
+              </select>
+            </div>
+          </label>
+          <button class="form__submit" type="submit">Choose a folder</button>
+        </form>
+      </div>
     </div>
-  </div>
 
-  <div class="feedback">
-    <p class="feedback__message"></p>
-  </div>
+    <div class="feedback">
+      <p class="feedback__message"></p>
+    </div>
 
-  <script src="app.js"></script>
-</body>
+    <script src="app.js"></script>
+  </body>
 </html>
