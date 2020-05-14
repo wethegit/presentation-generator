@@ -1,85 +1,68 @@
-# Quick start
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-Make sure you have [Node.js](https://nodejs.org) installed, then type the following commands known to every Node developer...
+## Available Scripts
 
-```
-yarn install
-yarn start
-```
+In the project directory, you can run:
 
-...and you have a running desktop application on your screen.
+### `npm start`
 
-# Structure of the project
+Runs the app in the development mode.<br />
+Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-The application consists of two main folders...
+The page will reload if you make edits.<br />
+You will also see any lint errors in the console.
 
-`src` - files within this folder get transpiled or compiled (because Electron can't use them directly).
+### `npm test`
 
-`app` - contains all static assets which don't need any pre-processing. Put here images, CSSes, HTMLs, etc.
+Launches the test runner in the interactive watch mode.<br />
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-The build process compiles the content of the `src` folder and puts it into the `app` folder, so after the build has finished, your `app` folder contains the full, runnable application.
+### `npm run build`
 
-Treat `src` and `app` folders like two halves of one bigger thing.
+Builds the app for production to the `build` folder.<br />
+It correctly bundles React in production mode and optimizes the build for the best performance.
 
-The drawback of this design is that `app` folder contains some files which should be git-ignored and some which shouldn't (see `.gitignore` file). But this two-folders split makes development builds much, much faster.
+The build is minified and the filenames include the hashes.<br />
+Your app is ready to be deployed!
 
-# Development
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-## Starting the app
+### `npm run eject`
 
-```
-yarn start
-```
+**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
 
-## The build pipeline
+If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-Build process uses [Webpack](https://webpack.js.org/). The entry-points are `src/background.js` and `src/app.js`. Webpack will follow all `import` statements starting from those files and compile code of the whole dependency tree into one `.js` file for each entry point.
+Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
 
-[Babel](http://babeljs.io/) is also utilised, but mainly for its great error messages. Electron under the hood runs latest Chromium, hence most of the new JavaScript features are already natively supported.
+You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
 
-## Environments
+## Learn More
 
-Environmental variables are done in a bit different way (not via `process.env`). Env files are plain JSONs in `config` directory, and build process dynamically links one of them as an `env` module. You can import it wherever in code you need access to the environment.
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-```js
-import env from "env";
-console.log(env.name);
-```
+To learn React, check out the [React documentation](https://reactjs.org/).
 
-## Adding npm modules to your app
+### Code Splitting
 
-Remember to respect the split between `dependencies` and `devDependencies` in `package.json` file. Your distributable app will contain modules listed in `dependencies` after running the release script.
+This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
 
-_Side note:_ If the module you want to use in your app is a native one (not pure JavaScript but compiled binary) you should first run `npm install name_of_npm_module` and then `npm run postinstall` to rebuild the module for Electron. You need to do this once after you're first time installing the module. Later on, the postinstall script will fire automatically with every `npm install`.
+### Analyzing the Bundle Size
 
-# Making a release
+This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
 
-Requirements:
+### Making a Progressive Web App
 
-1. A Github Token with read/write access to this repo.
-2. Set that token as `GH_TOKEN` on your environment, not on `.env` or `process.env` on your actuall shell.
-3. You need a Mac Developer certificate, you can get one by going to X Code and into Cetificates and making a new Mac Developer Certificate.
+This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
 
-Then to package your app into an installer follow these steps:
+### Advanced Configuration
 
-1. Make a git tag with the new version and a title:
+This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
 
-```
-git tag -a v1.0.23 -m 'Release title'
-```
+### Deployment
 
-2. Update `package.json` with the same version of the tag
-3. Work and commit your changes like you would normally
-4. When you are done, run:
+This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
 
-```
-yarn release
-```
+### `npm run build` fails to minify
 
-5. Go into Github Repo page, then go into Releases, find your release draft in there and publish it!
-
-Once the packaging process finished, the `dist` directory will contain your distributable file.
-
-We use [electron-builder](https://github.com/electron-userland/electron-builder) to handle the packaging process. It has a lot of [customization options](https://www.electron.build/configuration/configuration), which you can declare under `"build"` key in `package.json`.
-
-You can package your app cross-platform from a single operating system, [electron-builder kind of supports this](https://www.electron.build/multi-platform-build), but there are limitations and asterisks. That's why this boilerplate doesn't do that by default.
+This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
