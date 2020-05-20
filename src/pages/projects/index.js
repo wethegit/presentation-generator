@@ -1,7 +1,6 @@
 import React from "react";
 import { Switch, Route, useRouteMatch, Link } from "react-router-dom";
 
-import ProjectPage from "./project/index.js";
 import CreateProjectPage from "./create/index.js";
 import UpdateProjectPage from "./update/index.js";
 
