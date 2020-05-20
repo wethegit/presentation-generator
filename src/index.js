@@ -1,18 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import { Grommet } from "grommet";
 
 import "./index.scss";
 
 import App from "./components/app/app";
-import lightTheme from "./themes/light";
 import * as serviceWorker from "./serviceWorker";
 
 ReactDOM.render(
   <React.StrictMode>
-    <Grommet theme={lightTheme}>
-      <App />
-    </Grommet>
+    <App />
   </React.StrictMode>,
   document.getElementById("root")
 );
