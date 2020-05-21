@@ -1,0 +1,26 @@
+type Project
+  @model
+  @auth(
+    rules: [
+      { allow: groups, groups: ["Admin"] }
+      {
+        allow: groups
+        groups: ["WTC"]
+        operations: [create, update, delete, read]
+      }
+      { allow: groups, groupsField: "client", operations: [read] }
+    ]
+  )
+  @key(name: "ByClient", fields: ["client"], queryField: "projectsByClient")
+  @key(name: "BySlug", fields: ["slug"], queryField: "projectsBySlug") {
+  id: ID!
+  title: String!
+  slug: String!
+  client: ClientGroupEnum!
+  description: String
+}
+
+enum ClientGroupEnum {
+  NOA
+  TPCI
+}

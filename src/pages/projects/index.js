@@ -1,25 +1,36 @@
 import React from "react";
 import { Switch, Route, useRouteMatch, Link } from "react-router-dom";
+import gql from "graphql-tag";
+import { useQuery } from "@apollo/react-hooks";
+
+import { listProjects } from "../../graphql/queries";
+import PageLayout from "../../containers/page/page.js";
 
 import CreateProjectPage from "./create/index.js";
 import UpdateProjectPage from "./update/index.js";
 
-import PROJECTS from "../../data/projects.json";
-import PageLayout from "../../layouts/page/page.js";
-
 export default function Projects() {
   let { path, url } = useRouteMatch();
+  const { loading, error, data } = useQuery(gql(listProjects));
 
   return (
     <Switch>
       <Route exact path={path}>
         <PageLayout>
-          <h3>Show list of projects or NO projects depending on user</h3>
-          {PROJECTS.map((item, index) => (
-            <Link to={`${url}/${index}`} key={`project-${index}`}>
-              {item.title}
-            </Link>
-          ))}
+          <h3>Show list of projects</h3>
+          <Link to={`${url}/create`}>New Project</Link>
+          <hr />
+          {loading && <p>Loading...</p>}
+          {error && <p>Error! {error.message}</p>}
+          {data?.listProjects?.items && (
+            <ul>
+              {data.listProjects.items.map((item) => (
+                <li key={`project-${item.id}`}>
+                  <Link to={`${url}/${item.id}`}>{item.title}</Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </PageLayout>
       </Route>
       <Route path={`${path}/create`}>

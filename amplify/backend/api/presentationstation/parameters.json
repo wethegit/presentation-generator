@@ -1,0 +1,11 @@
+{
+    "AppSyncApiName": "presentationstation",
+    "DynamoDBBillingMode": "PAY_PER_REQUEST",
+    "DynamoDBEnableServerSideEncryption": "false",
+    "AuthCognitoUserPoolId": {
+        "Fn::GetAtt": [
+            "authpresentationstation5c044bd4",
+            "Outputs.UserPoolId"
+        ]
+    }
+}

@@ -1,0 +1,18 @@
+[
+    {
+        "groupName": "Admin",
+        "precedence": 1
+    },
+    {
+        "groupName": "WTC",
+        "precedence": 2
+    },
+    {
+        "groupName": "NOA",
+        "precedence": 3
+    },
+    {
+        "groupName": "TPCI",
+        "precedence": 4
+    }
+]

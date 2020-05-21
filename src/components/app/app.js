@@ -1,30 +1,31 @@
 import React from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
-import PrivateRoute from "../private-route/private-route.js";
-import Navigation from "../navigation/navigation.js";
+import PrivateRoute from "../../containers/private-route/private-route.js";
 
 import ProjectsPage from "../../pages/projects/index.js";
 import HomePage from "../../pages/home/index.js";
 import PresentationPage from "../../pages/presentation/index.js";
-import LoginPage from "../../pages/login/login.js";
+import AdminPage from "../../pages/admin/index.js";
 
 export default function App() {
   return (
     <Router>
-      <Navigation />
       <Switch>
-        <PrivateRoute exact path="/">
+        <Route exact path="/">
           <HomePage />
-        </PrivateRoute>
-        <PrivateRoute path="/projects">
+        </Route>
+        <PrivateRoute groups={["WTC"]} path="/projects">
           <ProjectsPage />
         </PrivateRoute>
-        <Route path="/login">
-          <LoginPage />
-        </Route>
-        <PrivateRoute path="/presentation/:projectId">
+        <PrivateRoute
+          groups={["WTC", "NOA", "TPCI"]}
+          path="/presentation/:projectSlug"
+        >
           <PresentationPage />
+        </PrivateRoute>
+        <PrivateRoute path="/admin">
+          <AdminPage />
         </PrivateRoute>
       </Switch>
     </Router>

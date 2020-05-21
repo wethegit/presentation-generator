@@ -1,14 +1,32 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import Amplify from "aws-amplify";
+import { BrowserRouter as Router } from "react-router-dom";
+
+import { AuthProvider } from "./contexts/auth-context";
 
 import "./index.scss";
 
 import App from "./components/app/app";
+import Auth from "./containers/auth/auth";
+import ApolloWrapper from "./containers/apollo/apollo";
+
 import * as serviceWorker from "./serviceWorker";
+import awsExports from "./aws-exports";
+
+Amplify.configure(awsExports);
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <AuthProvider>
+      <ApolloWrapper>
+        <Router>
+          <Auth>
+            <App />
+          </Auth>
+        </Router>
+      </ApolloWrapper>
+    </AuthProvider>
   </React.StrictMode>,
   document.getElementById("root")
 );
