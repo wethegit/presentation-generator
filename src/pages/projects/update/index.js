@@ -9,9 +9,9 @@ import PageLayout from "../../../containers/page/page";
 import {
   updateProject,
   deleteProject,
-  createProjectConcept,
-  updateProjectConcept,
-  deleteProjectConcept,
+  createConcept,
+  updateConcept,
+  deleteConcept,
 } from "../../../graphql/mutations";
 import { getProject } from "../../../graphql/queries";
 
@@ -27,9 +27,9 @@ export default function CreateProjectPage() {
   });
   const [project, setProject] = useState(null);
   const [updateProjectMutation] = useMutation(gql(updateProject));
-  const [updateProjectConceptMutation] = useMutation(gql(updateProjectConcept));
-  const [createProjectConceptMutation] = useMutation(gql(createProjectConcept));
-  const [deleteProjectConceptMutation] = useMutation(gql(deleteProjectConcept));
+  const [updateConceptMutation] = useMutation(gql(updateConcept));
+  const [createConceptMutation] = useMutation(gql(createConcept));
+  const [deleteConceptMutation] = useMutation(gql(deleteConcept));
   const [deleteProjectMutation] = useMutation(gql(deleteProject));
   const { loading, error, data } = useQuery(gql(getProject), {
     variables: { id: projectId },
@@ -65,14 +65,14 @@ export default function CreateProjectPage() {
         // if the concept has an id, we update it
         if (id)
           promises.push(
-            updateProjectConceptMutation({
+            updateConceptMutation({
               variables: { input: { id, name, projectID: projectId } },
             })
           );
         // otherwise we create it
         else
           promises.push(
-            createProjectConceptMutation({
+            createConceptMutation({
               variables: { input: { name, projectID: projectId } },
             })
           );
@@ -82,7 +82,7 @@ export default function CreateProjectPage() {
       data.getProject.concepts.items.forEach(({ id }) => {
         if (!concepts.items.find((c) => c.id === id))
           promises.push(
-            deleteProjectConceptMutation({ variables: { input: { id } } })
+            deleteConceptMutation({ variables: { input: { id } } })
           );
       });
 
@@ -113,7 +113,7 @@ export default function CreateProjectPage() {
       project.concepts.items.forEach(({ id }) => {
         if (id)
           promises.push(
-            deleteProjectConceptMutation({ variables: { input: { id } } })
+            deleteConceptMutation({ variables: { input: { id } } })
           );
       });
 
@@ -271,7 +271,7 @@ export default function CreateProjectPage() {
                         name="description"
                         type="text"
                         onChange={onDetailsChange}
-                        value={project.description}
+                        value={project.description || ""}
                       />
                     </td>
                   </tr>

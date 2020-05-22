@@ -6,10 +6,11 @@ import PageLayout from "../../../containers/page/page";
 
 import {
   createProject,
-  createProjectConcept,
+  createConcept,
+  createPage,
 } from "../../../graphql/mutations";
 
-import { CLIENTS } from "../../../utils/consts";
+import { CLIENTS, SIZES } from "../../../utils/consts";
 
 const FORMFIELDS = [
   {
@@ -44,13 +45,13 @@ const FORMFIELDS = [
 
 export default function CreateProjectPage() {
   const [createProjectMutation] = useMutation(gql(createProject));
-  const [createProjectConceptMutation] = useMutation(gql(createProjectConcept));
+  const [createConceptMutation] = useMutation(gql(createConcept));
+  const [createPageMutation] = useMutation(gql(createPage));
   const [state, setState] = useState({
     loading: false,
     error: false,
     success: false,
   });
-  const [concepts, setConcepts] = useState([]);
   const [details, setDetails] = useState(() => {
     let initial = {};
 
@@ -60,6 +61,7 @@ export default function CreateProjectPage() {
 
     return initial;
   });
+  const [concepts, setConcepts] = useState([]);
 
   const onSubmit = async (event) => {
     event.preventDefault();
@@ -67,26 +69,48 @@ export default function CreateProjectPage() {
     setState({ loading: true, error: false, success: false });
 
     try {
+      // create project
       const {
-        data: { createProject: project },
+        data: { createProject: newProject },
       } = await createProjectMutation({
         variables: { input: { ...details } },
       });
 
-      await Promise.all(
-        concepts.map((concept) =>
-          createProjectConceptMutation({
-            variables: { input: { projectID: project.id, ...concept } },
-          })
-        )
-      );
+      let pagesPromises = [];
+      for (let { pages, ...concept } of concepts) {
+        // create concept
+        const {
+          data: { createConcept: newConcept },
+        } = await createConceptMutation({
+          variables: {
+            input: { projectID: newProject.id, ...concept },
+          },
+        });
+
+        for (let page of pages) {
+          // create page
+          pagesPromises.push(
+            createPageMutation({
+              variables: {
+                input: {
+                  conceptID: newConcept.id,
+                  ...page,
+                },
+              },
+            })
+          );
+        }
+      }
+
+      await Promise.all(pagesPromises);
 
       setState((cur) => {
         return { ...cur, error: false, success: true };
       });
     } catch (error) {
+      console.log(error.error);
       setState((cur) => {
-        return { ...cur, error, success: false };
+        return { ...cur, error: error.message, success: false };
       });
     } finally {
       setState((cur) => {
@@ -105,7 +129,9 @@ export default function CreateProjectPage() {
   };
 
   const onClickAddConcept = () => {
-    setConcepts((cur) => cur.concat([{ name: `Concept ${cur.length + 1}` }]));
+    setConcepts((cur) =>
+      cur.concat([{ name: `Concept ${cur.length + 1}`, pages: [] }])
+    );
   };
 
   const onConceptValueChange = (event) => {
@@ -124,9 +150,56 @@ export default function CreateProjectPage() {
   };
 
   const onClickRemoveConcept = (event) => {
-    const { conceptIndex } = event.target.dataset;
+    const conceptIndex = parseInt(event.target.dataset.conceptIndex);
 
     setConcepts((cur) => cur.filter((c, index) => index !== conceptIndex));
+  };
+
+  const onClickRemovePage = (event) => {
+    const conceptIndex = parseInt(event.target.dataset.conceptIndex);
+    const pageIndex = parseInt(event.target.dataset.conceptIndex);
+
+    setConcepts((cur) =>
+      cur.map((concept, index) => {
+        if (index === conceptIndex)
+          concept.pages = concept.pages.filter((p, pi) => pi !== pageIndex);
+        return concept;
+      })
+    );
+  };
+
+  const onClickAddPage = (event) => {
+    const conceptIndex = parseInt(event.target.dataset.conceptIndex);
+
+    setConcepts((cur) => {
+      const update = [...cur];
+      const concept = { ...update[conceptIndex] };
+      concept.pages = concept.pages.concat([
+        { name: `Page ${concept.pages.length + 1}`, size: SIZES[0] },
+      ]);
+      update[conceptIndex] = concept;
+      return update;
+    });
+  };
+
+  const onPageValueChange = (event) => {
+    const target = event.target;
+    const conceptIndex = parseInt(target.dataset.conceptIndex);
+    const pageIndex = parseInt(target.dataset.pageIndex);
+    const val = target.value;
+    const prop = target.dataset.prop;
+
+    setConcepts((cur) =>
+      cur.map((concept, ci) => {
+        if (ci === conceptIndex)
+          concept.pages = concept.pages.map((page, pi) => {
+            if (ci === conceptIndex && pi === pageIndex) page[prop] = val;
+            return page;
+          });
+
+        return concept;
+      })
+    );
   };
 
   return (
@@ -182,42 +255,142 @@ export default function CreateProjectPage() {
           </button>
           <table>
             <tbody>
-              {concepts.map((concept, index) => (
-                <React.Fragment key={`concept-${index}`}>
-                  <tr>
-                    <td>
-                      <label>Name</label>
-                    </td>
-                    <td>
-                      <input
-                        data-concept-index={index}
-                        data-prop="name"
-                        name={`concept-${index}-title`}
-                        type="text"
-                        required
-                        value={concept.name}
-                        onChange={onConceptValueChange}
-                      />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <label>Image</label>
-                    </td>
-                    <td></td>
-                  </tr>
-                  <tr>
-                    <td colSpan="2">
+              {concepts.map((concept, conceptIndex) => (
+                <tr key={`concept-${conceptIndex}`}>
+                  <td colSpan="2">
+                    <fieldset>
+                      <table>
+                        <tbody>
+                          <tr>
+                            <td>
+                              <label>Name</label>
+                            </td>
+                            <td>
+                              <input
+                                data-concept-index={conceptIndex}
+                                data-prop="name"
+                                name={`concept-${conceptIndex}-title`}
+                                type="text"
+                                required
+                                value={concept.name}
+                                onChange={onConceptValueChange}
+                              />
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+                      <table>
+                        <tbody>
+                          <tr>
+                            <td colSpan="2">
+                              <fieldset>
+                                <legend>Pages</legend>
+                                <button
+                                  type="button"
+                                  data-concept-index={conceptIndex}
+                                  onClick={onClickAddPage}
+                                >
+                                  Add Page
+                                </button>
+                                {concept.pages.length > 0 && (
+                                  <table>
+                                    <tbody>
+                                      {concept.pages.map((page, pageIndex) => (
+                                        <tr
+                                          key={`concept-${conceptIndex}-page-${pageIndex}`}
+                                        >
+                                          <td colSpan="2">
+                                            <fieldset>
+                                              <table>
+                                                <tbody>
+                                                  <tr>
+                                                    <td>
+                                                      <label>Name</label>
+                                                    </td>
+                                                    <td>
+                                                      <input
+                                                        data-concept-index={
+                                                          conceptIndex
+                                                        }
+                                                        data-page-index={
+                                                          pageIndex
+                                                        }
+                                                        onChange={
+                                                          onPageValueChange
+                                                        }
+                                                        type="text"
+                                                        name={`concept-${conceptIndex}-page-${pageIndex}-name`}
+                                                        data-prop="name"
+                                                        required
+                                                        value={page.name}
+                                                      />
+                                                    </td>
+                                                  </tr>
+                                                  <tr>
+                                                    <td>
+                                                      <label>Size</label>
+                                                    </td>
+                                                    <td>
+                                                      <select
+                                                        value={page.size}
+                                                        name={`concept-${conceptIndex}-page-${pageIndex}-size`}
+                                                        required
+                                                        data-concept-index={
+                                                          conceptIndex
+                                                        }
+                                                        data-page-index={
+                                                          pageIndex
+                                                        }
+                                                        onChange={
+                                                          onPageValueChange
+                                                        }
+                                                      >
+                                                        {SIZES.map((name) => (
+                                                          <option
+                                                            key={`concept-${conceptIndex}-page-${pageIndex}-size-option-${name}`}
+                                                            value={name}
+                                                          >
+                                                            {name}
+                                                          </option>
+                                                        ))}
+                                                      </select>
+                                                    </td>
+                                                  </tr>
+                                                </tbody>
+                                              </table>
+                                              <button
+                                                type="button"
+                                                data-concept-index={
+                                                  conceptIndex
+                                                }
+                                                data-page-index={pageIndex}
+                                                onClick={onClickRemovePage}
+                                              >
+                                                Remove
+                                              </button>
+                                            </fieldset>
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                )}
+                              </fieldset>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                       <button
                         type="button"
-                        data-concept-index={index}
+                        data-concept-index={conceptIndex}
                         onClick={onClickRemoveConcept}
                       >
                         Remove
                       </button>
-                    </td>
-                  </tr>
-                </React.Fragment>
+                    </fieldset>
+                  </td>
+                </tr>
               ))}
             </tbody>
           </table>
