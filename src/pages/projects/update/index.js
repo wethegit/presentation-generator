@@ -6,10 +6,15 @@ import { useMutation, useQuery } from "@apollo/react-hooks";
 
 import PageLayout from "../../../containers/page/page";
 
-import { updateProject, deleteProject } from "../../../graphql/mutations";
+import {
+  updateProject,
+  deleteProject,
+  createProjectConcept,
+  updateProjectConcept,
+  deleteProjectConcept,
+} from "../../../graphql/mutations";
 import { getProject } from "../../../graphql/queries";
 
-import { formToObject } from "../../../utils/helpers";
 import { CLIENTS } from "../../../utils/consts";
 
 export default function CreateProjectPage() {
@@ -22,11 +27,15 @@ export default function CreateProjectPage() {
   });
   const [project, setProject] = useState(null);
   const [updateProjectMutation] = useMutation(gql(updateProject));
+  const [updateProjectConceptMutation] = useMutation(gql(updateProjectConcept));
+  const [createProjectConceptMutation] = useMutation(gql(createProjectConcept));
+  const [deleteProjectConceptMutation] = useMutation(gql(deleteProjectConcept));
   const [deleteProjectMutation] = useMutation(gql(deleteProject));
   const { loading, error, data } = useQuery(gql(getProject), {
     variables: { id: projectId },
     onCompleted: () => {
-      setProject(data?.getProject);
+      if (!data.getProject) return;
+      setProject(data.getProject);
     },
   });
 
@@ -37,12 +46,47 @@ export default function CreateProjectPage() {
       return { success: false, error: false, loading: true };
     });
 
-    const formData = formToObject(event.target);
+    const { concepts, title, slug, client, description } = project;
 
     try {
-      await updateProjectMutation({
-        variables: { input: { id: projectId, ...formData } },
+      let promises = [];
+
+      // Update project details
+      promises.push(
+        await updateProjectMutation({
+          variables: {
+            input: { id: projectId, title, slug, client, description },
+          },
+        })
+      );
+
+      // go through concepts
+      concepts.items.forEach(({ id, name }) => {
+        // if the concept has an id, we update it
+        if (id)
+          promises.push(
+            updateProjectConceptMutation({
+              variables: { input: { id, name, projectID: projectId } },
+            })
+          );
+        // otherwise we create it
+        else
+          promises.push(
+            createProjectConceptMutation({
+              variables: { input: { name, projectID: projectId } },
+            })
+          );
       });
+
+      // go through original data and compare to see if any concepts where deleted
+      data.getProject.concepts.items.forEach(({ id }) => {
+        if (!concepts.items.find((c) => c.id === id))
+          promises.push(
+            deleteProjectConceptMutation({ variables: { input: { id } } })
+          );
+      });
+
+      promises = await Promise.all(promises);
 
       setState((cur) => {
         return { ...cur, success: true, error: false };
@@ -64,9 +108,22 @@ export default function CreateProjectPage() {
     });
 
     try {
-      await deleteProjectMutation({
-        variables: { input: { id: projectId } },
+      let promises = [];
+
+      project.concepts.items.forEach(({ id }) => {
+        if (id)
+          promises.push(
+            deleteProjectConceptMutation({ variables: { input: { id } } })
+          );
       });
+
+      promises.push(
+        deleteProjectMutation({
+          variables: { input: { id: projectId } },
+        })
+      );
+
+      promises = await Promise.all(promises);
 
       history.push("/projects");
     } catch (error) {
@@ -89,7 +146,11 @@ export default function CreateProjectPage() {
     setProject(({ concepts, ...rest }) => {
       return {
         ...rest,
-        concepts: { items: concepts.items.concat([{ name: "" }]) },
+        concepts: {
+          items: concepts.items.concat([
+            { name: `Concept ${concepts.items.length + 1}` },
+          ]),
+        },
       };
     });
   };
@@ -135,9 +196,6 @@ export default function CreateProjectPage() {
       {/* no data returned */}
       {!loading && !project && <p>No project found</p>}
 
-      <Link to={`/presentation/${project?.slug}`}>See presentation</Link>
-      <hr />
-
       {/* errors from current entry */}
       {error && <p>Error: {error.message}</p>}
 
@@ -149,6 +207,8 @@ export default function CreateProjectPage() {
 
       {project && (
         <>
+          <Link to={`/presentation/${project?.slug}`}>See presentation</Link>
+          <hr />
           <form onSubmit={onSubmit}>
             {/* disables if loading entry or mutation */}
             <fieldset disabled={loading || state.loading}>
@@ -256,11 +316,11 @@ export default function CreateProjectPage() {
                 Add Concept
               </button>
             </fieldset>
+            <button type="submit">Update</button>
+            <button type="button" onClick={onClickDelete}>
+              Delete
+            </button>
           </form>
-          <button type="submit">Update</button>
-          <button type="button" onClick={onClickDelete}>
-            Delete
-          </button>
         </>
       )}
     </PageLayout>
