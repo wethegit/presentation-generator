@@ -9,29 +9,37 @@ import PageLayout from "../../containers/page/page.js";
 import CreateProjectPage from "./create/index.js";
 import UpdateProjectPage from "./update/index.js";
 
-export default function Projects() {
-  let { path, url } = useRouteMatch();
+const ProjectsLanding = () => {
+  let { url } = useRouteMatch();
   const { loading, error, data } = useQuery(gql(listProjects));
+
+  return (
+    <PageLayout>
+      <h3>Show list of projects</h3>
+      <Link to={`${url}/create`}>New Project</Link>
+      <hr />
+      {loading && <p>Loading...</p>}
+      {error && <p>Error! {error.message}</p>}
+      {data?.listProjects?.items && (
+        <ul>
+          {data.listProjects.items.map((item) => (
+            <li key={`project-${item.id}`}>
+              <Link to={`${url}/${item.id}`}>{item.title}</Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </PageLayout>
+  );
+};
+
+export default function Projects() {
+  let { path } = useRouteMatch();
 
   return (
     <Switch>
       <Route exact path={path}>
-        <PageLayout>
-          <h3>Show list of projects</h3>
-          <Link to={`${url}/create`}>New Project</Link>
-          <hr />
-          {loading && <p>Loading...</p>}
-          {error && <p>Error! {error.message}</p>}
-          {data?.listProjects?.items && (
-            <ul>
-              {data.listProjects.items.map((item) => (
-                <li key={`project-${item.id}`}>
-                  <Link to={`${url}/${item.id}`}>{item.title}</Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </PageLayout>
+        <ProjectsLanding />
       </Route>
       <Route path={`${path}/create`}>
         <CreateProjectPage />

@@ -9,6 +9,16 @@ export const onCreateProject = /* GraphQL */ `
       slug
       client
       description
+      concepts {
+        items {
+          id
+          name
+          projectID
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
       createdAt
       updatedAt
     }
@@ -22,6 +32,16 @@ export const onUpdateProject = /* GraphQL */ `
       slug
       client
       description
+      concepts {
+        items {
+          id
+          name
+          projectID
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
       createdAt
       updatedAt
     }
@@ -35,6 +55,49 @@ export const onDeleteProject = /* GraphQL */ `
       slug
       client
       description
+      concepts {
+        items {
+          id
+          name
+          projectID
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onCreateProjectConcept = /* GraphQL */ `
+  subscription OnCreateProjectConcept {
+    onCreateProjectConcept {
+      id
+      name
+      projectID
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onUpdateProjectConcept = /* GraphQL */ `
+  subscription OnUpdateProjectConcept {
+    onUpdateProjectConcept {
+      id
+      name
+      projectID
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onDeleteProjectConcept = /* GraphQL */ `
+  subscription OnDeleteProjectConcept {
+    onDeleteProjectConcept {
+      id
+      name
+      projectID
       createdAt
       updatedAt
     }

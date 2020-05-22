@@ -19,13 +19,13 @@ Amplify.configure(awsExports);
 ReactDOM.render(
   <React.StrictMode>
     <AuthProvider>
-      <ApolloWrapper>
+      <Auth>
         <Router>
-          <Auth>
+          <ApolloWrapper>
             <App />
-          </Auth>
+          </ApolloWrapper>
         </Router>
-      </ApolloWrapper>
+      </Auth>
     </AuthProvider>
   </React.StrictMode>,
   document.getElementById("root")

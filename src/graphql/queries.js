@@ -9,6 +9,16 @@ export const getProject = /* GraphQL */ `
       slug
       client
       description
+      concepts {
+        items {
+          id
+          name
+          projectID
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
       createdAt
       updatedAt
     }
@@ -27,6 +37,16 @@ export const listProjects = /* GraphQL */ `
         slug
         client
         description
+        concepts {
+          items {
+            id
+            name
+            projectID
+            createdAt
+            updatedAt
+          }
+          nextToken
+        }
         createdAt
         updatedAt
       }
@@ -55,6 +75,16 @@ export const projectsByClient = /* GraphQL */ `
         slug
         client
         description
+        concepts {
+          items {
+            id
+            name
+            projectID
+            createdAt
+            updatedAt
+          }
+          nextToken
+        }
         createdAt
         updatedAt
       }
@@ -83,6 +113,16 @@ export const projectsBySlug = /* GraphQL */ `
         slug
         client
         description
+        concepts {
+          items {
+            id
+            name
+            projectID
+            createdAt
+            updatedAt
+          }
+          nextToken
+        }
         createdAt
         updatedAt
       }

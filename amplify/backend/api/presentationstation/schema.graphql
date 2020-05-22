@@ -18,9 +18,21 @@ type Project
   slug: String!
   client: ClientGroupEnum!
   description: String
+  concepts: [ProjectConcept]
+    @connection(keyName: "byConcept", fields: ["id"], sortField: "createdAt")
 }
 
 enum ClientGroupEnum {
   NOA
   TPCI
+  WTC
+}
+
+type ProjectConcept
+  @model(queries: null)
+  @key(name: "byConcept", fields: ["projectID"])
+  @auth(rules: [{ allow: groups, groups: ["Admin", "WTC"] }]) {
+  id: ID!
+  name: String!
+  projectID: ID!
 }
