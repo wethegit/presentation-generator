@@ -18,6 +18,14 @@ export const createProject = /* GraphQL */ `
           name
           projectID
           pages {
+            items {
+              id
+              name
+              size
+              conceptID
+              createdAt
+              updatedAt
+            }
             nextToken
           }
           createdAt
@@ -47,6 +55,14 @@ export const updateProject = /* GraphQL */ `
           name
           projectID
           pages {
+            items {
+              id
+              name
+              size
+              conceptID
+              createdAt
+              updatedAt
+            }
             nextToken
           }
           createdAt
@@ -76,6 +92,14 @@ export const deleteProject = /* GraphQL */ `
           name
           projectID
           pages {
+            items {
+              id
+              name
+              size
+              conceptID
+              createdAt
+              updatedAt
+            }
             nextToken
           }
           createdAt
