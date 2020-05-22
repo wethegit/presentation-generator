@@ -14,6 +14,9 @@ export const getProject = /* GraphQL */ `
           id
           name
           projectID
+          pages {
+            nextToken
+          }
           createdAt
           updatedAt
         }

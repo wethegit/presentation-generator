@@ -14,6 +14,9 @@ export const onCreateProject = /* GraphQL */ `
           id
           name
           projectID
+          pages {
+            nextToken
+          }
           createdAt
           updatedAt
         }
@@ -37,6 +40,9 @@ export const onUpdateProject = /* GraphQL */ `
           id
           name
           projectID
+          pages {
+            nextToken
+          }
           createdAt
           updatedAt
         }
@@ -60,6 +66,9 @@ export const onDeleteProject = /* GraphQL */ `
           id
           name
           projectID
+          pages {
+            nextToken
+          }
           createdAt
           updatedAt
         }
@@ -70,34 +79,103 @@ export const onDeleteProject = /* GraphQL */ `
     }
   }
 `;
-export const onCreateProjectConcept = /* GraphQL */ `
-  subscription OnCreateProjectConcept {
-    onCreateProjectConcept {
+export const onCreateConcept = /* GraphQL */ `
+  subscription OnCreateConcept {
+    onCreateConcept {
       id
       name
       projectID
+      pages {
+        items {
+          id
+          name
+          size
+          conceptID
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
       createdAt
       updatedAt
     }
   }
 `;
-export const onUpdateProjectConcept = /* GraphQL */ `
-  subscription OnUpdateProjectConcept {
-    onUpdateProjectConcept {
+export const onUpdateConcept = /* GraphQL */ `
+  subscription OnUpdateConcept {
+    onUpdateConcept {
       id
       name
       projectID
+      pages {
+        items {
+          id
+          name
+          size
+          conceptID
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
       createdAt
       updatedAt
     }
   }
 `;
-export const onDeleteProjectConcept = /* GraphQL */ `
-  subscription OnDeleteProjectConcept {
-    onDeleteProjectConcept {
+export const onDeleteConcept = /* GraphQL */ `
+  subscription OnDeleteConcept {
+    onDeleteConcept {
       id
       name
       projectID
+      pages {
+        items {
+          id
+          name
+          size
+          conceptID
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onCreatePage = /* GraphQL */ `
+  subscription OnCreatePage {
+    onCreatePage {
+      id
+      name
+      size
+      conceptID
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onUpdatePage = /* GraphQL */ `
+  subscription OnUpdatePage {
+    onUpdatePage {
+      id
+      name
+      size
+      conceptID
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onDeletePage = /* GraphQL */ `
+  subscription OnDeletePage {
+    onDeletePage {
+      id
+      name
+      size
+      conceptID
       createdAt
       updatedAt
     }

@@ -17,6 +17,9 @@ export const createProject = /* GraphQL */ `
           id
           name
           projectID
+          pages {
+            nextToken
+          }
           createdAt
           updatedAt
         }
@@ -43,6 +46,9 @@ export const updateProject = /* GraphQL */ `
           id
           name
           projectID
+          pages {
+            nextToken
+          }
           createdAt
           updatedAt
         }
@@ -69,6 +75,9 @@ export const deleteProject = /* GraphQL */ `
           id
           name
           projectID
+          pages {
+            nextToken
+          }
           createdAt
           updatedAt
         }
@@ -79,43 +88,121 @@ export const deleteProject = /* GraphQL */ `
     }
   }
 `;
-export const createProjectConcept = /* GraphQL */ `
-  mutation CreateProjectConcept(
-    $input: CreateProjectConceptInput!
-    $condition: ModelProjectConceptConditionInput
+export const createConcept = /* GraphQL */ `
+  mutation CreateConcept(
+    $input: CreateConceptInput!
+    $condition: ModelConceptConditionInput
   ) {
-    createProjectConcept(input: $input, condition: $condition) {
+    createConcept(input: $input, condition: $condition) {
       id
       name
       projectID
+      pages {
+        items {
+          id
+          name
+          size
+          conceptID
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
       createdAt
       updatedAt
     }
   }
 `;
-export const updateProjectConcept = /* GraphQL */ `
-  mutation UpdateProjectConcept(
-    $input: UpdateProjectConceptInput!
-    $condition: ModelProjectConceptConditionInput
+export const updateConcept = /* GraphQL */ `
+  mutation UpdateConcept(
+    $input: UpdateConceptInput!
+    $condition: ModelConceptConditionInput
   ) {
-    updateProjectConcept(input: $input, condition: $condition) {
+    updateConcept(input: $input, condition: $condition) {
       id
       name
       projectID
+      pages {
+        items {
+          id
+          name
+          size
+          conceptID
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
       createdAt
       updatedAt
     }
   }
 `;
-export const deleteProjectConcept = /* GraphQL */ `
-  mutation DeleteProjectConcept(
-    $input: DeleteProjectConceptInput!
-    $condition: ModelProjectConceptConditionInput
+export const deleteConcept = /* GraphQL */ `
+  mutation DeleteConcept(
+    $input: DeleteConceptInput!
+    $condition: ModelConceptConditionInput
   ) {
-    deleteProjectConcept(input: $input, condition: $condition) {
+    deleteConcept(input: $input, condition: $condition) {
       id
       name
       projectID
+      pages {
+        items {
+          id
+          name
+          size
+          conceptID
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const createPage = /* GraphQL */ `
+  mutation CreatePage(
+    $input: CreatePageInput!
+    $condition: ModelPageConditionInput
+  ) {
+    createPage(input: $input, condition: $condition) {
+      id
+      name
+      size
+      conceptID
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const updatePage = /* GraphQL */ `
+  mutation UpdatePage(
+    $input: UpdatePageInput!
+    $condition: ModelPageConditionInput
+  ) {
+    updatePage(input: $input, condition: $condition) {
+      id
+      name
+      size
+      conceptID
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const deletePage = /* GraphQL */ `
+  mutation DeletePage(
+    $input: DeletePageInput!
+    $condition: ModelPageConditionInput
+  ) {
+    deletePage(input: $input, condition: $condition) {
+      id
+      name
+      size
+      conceptID
       createdAt
       updatedAt
     }
