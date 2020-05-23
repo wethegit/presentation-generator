@@ -1,4 +1,6 @@
-export function formToObject(form) {
-  const formData = new FormData(form);
-  return Object.fromEntries(formData.entries());
-}
+export const classnames = function (namesArray) {
+  return namesArray
+    .filter((v) => v != "")
+    .join(" ")
+    .trim();
+};
