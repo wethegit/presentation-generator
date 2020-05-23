@@ -7,6 +7,10 @@ import PageLayout from "../../containers/page/page";
 
 import { projectsBySlug } from "../../graphql/queries";
 
+import styles from "./presentation.module.scss";
+import Button from "../../components/button/button";
+import { classnames } from "../../utils/helpers";
+
 export default function CreateProjectPage() {
   const { projectSlug } = useParams();
   const { loading, error, data } = useQuery(gql(projectsBySlug), {
@@ -15,7 +19,7 @@ export default function CreateProjectPage() {
   const project = useMemo(() => data?.projectsBySlug?.items[0] || null, [data]);
 
   return (
-    <PageLayout>
+    <PageLayout className={styles.PresentationPage} noNavigation={true}>
       {/* loading current project entry */}
       {loading && <p>Loading</p>}
 
@@ -28,12 +32,200 @@ export default function CreateProjectPage() {
       {/* if we got data then we can finally edit */}
       {project && (
         <>
-          <h1>{project.title}</h1>
-          <h2>{project.description}</h2>
-          <h4>
-            Created: {new Date(project.createdAt).toDateString()} | Updated:{" "}
-            {new Date(project.updatedAt).toDateString()}
-          </h4>
+          <div className={classnames([styles.screen, styles.intro])}>
+            {/* <img className={styles.intro__logo" src="./logo.png" alt /> */}
+            <h1 className={styles.intro__title}>{project.title}</h1>
+            <h2 className={styles.intro__client}>{project.client}</h2>
+            <h3 className={styles.intro__date}>
+              Created: {new Date(project.createdAt).toDateString()}
+            </h3>
+            <h3 className={styles.intro__date}>
+              Updated: {new Date(project.updatedAt).toDateString()}
+            </h3>
+            <Button className={styles.intro__begin}>Begin</Button>
+          </div>
+          <div className={classnames([styles.sidebar])}>
+            <button className={styles.sidebar__toggler}>
+              <svg
+                className={styles["sidebar__toggler-icon"]}
+                viewBox="0 0 7 11"
+              >
+                <title>Toggle Sidebar</title>
+                <path
+                  d="M5.5 1L1 5.5 5.5 10"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  fill="none"
+                  fillRule="evenodd"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                ></path>
+              </svg>
+            </button>
+            <div className={styles.sidebar__wrapper}>
+              <nav
+                className={classnames([
+                  styles.sidebar__nav,
+                  styles.breakpoints,
+                ])}
+                aria-label="breakpoints"
+              >
+                <ul className={styles.breakpoints__list}>
+                  <li className={styles["breakpoints__list-item"]}>
+                    <button
+                      className={classnames([
+                        styles.button,
+                        styles.breakpoints__button,
+                        styles["is-inactive"],
+                      ])}
+                      data-breakpoint="desktop"
+                      disabled
+                    >
+                      <svg
+                        className={styles.breakpoints__icon}
+                        viewBox="0 0 60 60"
+                      >
+                        <title>Desktop</title>
+                        <path
+                          d="M15.197 21.256h29.58v17.786h-29.58zM26.043 43.006h7.888M29.987 39.041v3.965"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                        ></path>
+                      </svg>
+                    </button>
+                  </li>
+                  <li className={styles["breakpoints__list-item"]}>
+                    <button
+                      className={classnames([
+                        styles.button,
+                        styles.breakpoints__button,
+                        styles["is-inactive"],
+                      ])}
+                      data-breakpoint="tablet"
+                      disabled
+                    >
+                      <svg
+                        className={styles.breakpoints__icon}
+                        viewBox="0 0 60 60"
+                      >
+                        <title>Tablet</title>
+                        <path
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinejoin="round"
+                          d="M19 15h23v30H19z"
+                          fill="none"
+                        ></path>
+                      </svg>
+                    </button>
+                  </li>
+                  <li className={styles["breakpoints__list-item"]}>
+                    <button
+                      className={classnames([
+                        styles.button,
+                        styles.breakpoints__button,
+                        styles["is-inactive"],
+                      ])}
+                      data-breakpoint="mobile"
+                      disabled
+                    >
+                      <svg
+                        className={styles.breakpoints__icon}
+                        viewBox="0 0 60 60"
+                      >
+                        <title>Mobile</title>
+                        <path
+                          fill="none"
+                          d="M36.844 45H22.99a.995.995 0 0 1-.99-1V16c0-.552.443-1 .99-1h13.854c.546 0 .99.448.99 1v28c0 .552-.444 1-.99 1z"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        ></path>
+                        <path
+                          d="M34.25 20a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z"
+                          fill="currentColor"
+                        ></path>
+                      </svg>
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+              {project.concepts.items.length > 0 && (
+                <nav
+                  className={classnames([styles.sidebar__nav, styles.concepts])}
+                  aria-label="Concepts"
+                >
+                  <ul className={styles.concepts__list}>
+                    {project.concepts.items.map((concept) => (
+                      <li
+                        key={`concept-${concept.id}`}
+                        className={styles["concepts__list-item"]}
+                      >
+                        <button
+                          className={classnames([
+                            styles.concepts__button,
+                            styles["is-active"],
+                          ])}
+                          disabled={true}
+                        >
+                          {concept.name}
+                        </button>
+                        {concept.pages.items.length > 0 && (
+                          <ul
+                            className={classnames([
+                              styles.concepts__list,
+                              styles["concepts__list--nested"],
+                            ])}
+                          >
+                            {concept.pages.items.map((page) => (
+                              <li
+                                key={`page-${page.id}`}
+                                className={classnames([
+                                  styles["concepts__list-item"],
+                                  styles["concepts__list-item--nested"],
+                                ])}
+                              >
+                                <button
+                                  className={classnames([
+                                    styles.concepts__button,
+                                    styles["concepts__button--page"],
+                                  ])}
+                                >
+                                  {page.name}
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              )}
+              {/* <img
+                className={styles.sidebar__logo}
+                src="presentation-assets/logo.svg"
+                alt
+              /> */}
+            </div>
+          </div>
+          <div
+            className={classnames([
+              styles.screen,
+              styles["screen--hidden"],
+              styles.showcase,
+            ])}
+          >
+            <div className={styles.showcase__frame}>
+              <div className={styles.showcase__content}>
+                <img className={styles.showcase__image} src="" alt="" />
+              </div>
+            </div>
+          </div>
         </>
       )}
     </PageLayout>

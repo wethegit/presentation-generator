@@ -1,0 +1,13 @@
+.Button {
+  border-radius: 2em;
+  background-color: var(--c-secondary);
+  border: none;
+  font-size: 26px;
+  padding: 14px 56px 16px;
+}
+
+.Button:hover,
+.Button:focus {
+  background: linear-gradient(180deg, var(--c-accent-2), #ec140b);
+  color: var(--c-secondary);
+}
