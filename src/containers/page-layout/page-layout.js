@@ -1,8 +1,8 @@
 import React from "react";
 
-import Navigation from "../../components/navigation/navigation";
+import Navigation from "../../components/navigation/navigation.js";
 
-import { classnames } from "../../utils/helpers";
+import { classnames } from "../../utils/helpers.js";
 
 import styles from "./page.module.scss";
 

@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import Amplify from "aws-amplify";
+import Amplify, { Storage } from "aws-amplify";
 import { BrowserRouter as Router } from "react-router-dom";
 
 import { AuthProvider } from "./contexts/auth-context";
@@ -8,13 +8,14 @@ import { AuthProvider } from "./contexts/auth-context";
 import "./index.scss";
 
 import App from "./components/app/app";
-import Auth from "./containers/auth/auth";
-import ApolloWrapper from "./containers/apollo/apollo";
+import Auth from "./components/auth/auth.js";
+import ApolloWrapper from "./containers/apollo/apollo.js";
 
-import * as serviceWorker from "./serviceWorker";
-import awsExports from "./aws-exports";
+import * as serviceWorker from "./serviceWorker.js";
+import awsExports from "./aws-exports.js";
 
 Amplify.configure(awsExports);
+Storage.configure({ level: "protected" });
 
 ReactDOM.render(
   <React.StrictMode>

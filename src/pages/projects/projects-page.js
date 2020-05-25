@@ -3,11 +3,11 @@ import { Switch, Route, useRouteMatch, Link } from "react-router-dom";
 import gql from "graphql-tag";
 import { useQuery } from "@apollo/react-hooks";
 
-import { listProjects } from "../../graphql/queries";
-import PageLayout from "../../containers/page/page.js";
+import { listProjects } from "../../graphql/queries.js";
+import PageLayout from "../../containers/page-layout/page-layout.js";
 
-import CreateProjectPage from "./create/index.js";
-import UpdateProjectPage from "./update/index.js";
+import CreateProjectPage from "./create/create-project-page.js";
+import UpdateProjectPage from "./update/update-project-page.js";
 
 const ProjectsLanding = () => {
   let { url } = useRouteMatch();

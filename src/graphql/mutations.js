@@ -12,17 +12,29 @@ export const createProject = /* GraphQL */ `
       slug
       client
       description
+      logo {
+        key
+        identityId
+      }
       concepts {
         items {
           id
           name
           projectID
+          moodboard {
+            key
+            identityId
+          }
           pages {
             items {
               id
               name
               size
               conceptID
+              image {
+                key
+                identityId
+              }
               createdAt
               updatedAt
             }
@@ -49,17 +61,29 @@ export const updateProject = /* GraphQL */ `
       slug
       client
       description
+      logo {
+        key
+        identityId
+      }
       concepts {
         items {
           id
           name
           projectID
+          moodboard {
+            key
+            identityId
+          }
           pages {
             items {
               id
               name
               size
               conceptID
+              image {
+                key
+                identityId
+              }
               createdAt
               updatedAt
             }
@@ -86,17 +110,29 @@ export const deleteProject = /* GraphQL */ `
       slug
       client
       description
+      logo {
+        key
+        identityId
+      }
       concepts {
         items {
           id
           name
           projectID
+          moodboard {
+            key
+            identityId
+          }
           pages {
             items {
               id
               name
               size
               conceptID
+              image {
+                key
+                identityId
+              }
               createdAt
               updatedAt
             }
@@ -121,12 +157,20 @@ export const createConcept = /* GraphQL */ `
       id
       name
       projectID
+      moodboard {
+        key
+        identityId
+      }
       pages {
         items {
           id
           name
           size
           conceptID
+          image {
+            key
+            identityId
+          }
           createdAt
           updatedAt
         }
@@ -146,12 +190,20 @@ export const updateConcept = /* GraphQL */ `
       id
       name
       projectID
+      moodboard {
+        key
+        identityId
+      }
       pages {
         items {
           id
           name
           size
           conceptID
+          image {
+            key
+            identityId
+          }
           createdAt
           updatedAt
         }
@@ -171,12 +223,20 @@ export const deleteConcept = /* GraphQL */ `
       id
       name
       projectID
+      moodboard {
+        key
+        identityId
+      }
       pages {
         items {
           id
           name
           size
           conceptID
+          image {
+            key
+            identityId
+          }
           createdAt
           updatedAt
         }
@@ -197,6 +257,10 @@ export const createPage = /* GraphQL */ `
       name
       size
       conceptID
+      image {
+        key
+        identityId
+      }
       createdAt
       updatedAt
     }
@@ -212,6 +276,10 @@ export const updatePage = /* GraphQL */ `
       name
       size
       conceptID
+      image {
+        key
+        identityId
+      }
       createdAt
       updatedAt
     }
@@ -227,6 +295,10 @@ export const deletePage = /* GraphQL */ `
       name
       size
       conceptID
+      image {
+        key
+        identityId
+      }
       createdAt
       updatedAt
     }

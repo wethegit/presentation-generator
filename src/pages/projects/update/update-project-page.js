@@ -4,8 +4,9 @@ import { useHistory } from "react-router-dom";
 import { useParams, Link } from "react-router-dom";
 import { useMutation, useQuery } from "@apollo/react-hooks";
 import update from "immutability-helper";
+import { Storage } from "aws-amplify";
 
-import PageLayout from "../../../containers/page/page";
+import PageLayout from "../../../containers/page-layout/page-layout.js";
 
 import {
   updateProject,
@@ -16,16 +17,16 @@ import {
   createPage,
   updatePage,
   deletePage,
-} from "../../../graphql/mutations";
-import { getProject } from "../../../graphql/queries";
+} from "../../../graphql/mutations.js";
+import { getProject } from "../../../graphql/queries.js";
 
-import { CLIENTS, SIZES } from "../../../utils/consts";
+import { CLIENT_GROUPS, PAGE_SIZES } from "../../../utils/consts.js";
 
 export default function CreateProjectPage() {
   const history = useHistory();
   const { projectId } = useParams();
   const [state, setState] = useState({
-    loading: false,
+    loading: true,
     error: false,
     success: false,
   });
@@ -40,9 +41,23 @@ export default function CreateProjectPage() {
   const [deletePageMutation] = useMutation(gql(deletePage));
   const { loading, error, data } = useQuery(gql(getProject), {
     variables: { id: projectId },
-    onCompleted: () => {
+    onCompleted: async () => {
       if (!data.getProject) return;
-      setProject(data.getProject);
+
+      const project = data.getProject;
+      // we gotta go through and get all images
+      if (project.logo) {
+        const url = await Storage.get(project.logo.key, {
+          identityId: project.logo.identityId,
+        });
+        project.logo.url = url;
+      }
+
+      setState((cur) => {
+        return { ...cur, loading: false };
+      });
+
+      setProject(project);
     },
   });
 
@@ -180,6 +195,9 @@ export default function CreateProjectPage() {
       }
 
       // lastly, delete project
+      // first the logo
+      if (project.logo.key) promises.push(Storage.remove(project.logo.key));
+
       promises.push(
         deleteProjectMutation({
           variables: { input: { id: projectId } },
@@ -198,7 +216,9 @@ export default function CreateProjectPage() {
 
   const onDetailsChange = (event) => {
     const target = event.target;
-    const { name, value } = target;
+    let { name, value, type } = target;
+
+    if (type === "file") value = target.files[0];
 
     setProject((cur) => update(cur, { [name]: { $set: value } }));
   };
@@ -258,7 +278,7 @@ export default function CreateProjectPage() {
                       name: `Page ${
                         cur.concepts.items[conceptIndex].pages.items.length + 1
                       }`,
-                      size: SIZES[0],
+                      size: PAGE_SIZES[0],
                     },
                   ],
                 },
@@ -389,7 +409,7 @@ export default function CreateProjectPage() {
                         onChange={onDetailsChange}
                         value={project.client}
                       >
-                        {CLIENTS.map((name) => (
+                        {CLIENT_GROUPS.map((name) => (
                           <option key={`client-${name}`} value={name}>
                             {name}
                           </option>
@@ -408,6 +428,20 @@ export default function CreateProjectPage() {
                         onChange={onDetailsChange}
                         value={project.description || ""}
                       />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <label>Logo</label>
+                    </td>
+                    <td>
+                      <input
+                        name="logo"
+                        type="file"
+                        onChange={onDetailsChange}
+                      />
+                      <br />
+                      {project.logo && <img src={project.logo.url} alt="" />}
                     </td>
                   </tr>
                 </tbody>
@@ -505,7 +539,7 @@ export default function CreateProjectPage() {
                                                               }
                                                               required
                                                             >
-                                                              {SIZES.map(
+                                                              {PAGE_SIZES.map(
                                                                 (size) => (
                                                                   <option
                                                                     key={`concept-${conceptIndex}-page-${pageIndex}-size-${size}`}

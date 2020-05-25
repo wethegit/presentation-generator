@@ -3,13 +3,15 @@ import gql from "graphql-tag";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@apollo/react-hooks";
 
-import PageLayout from "../../containers/page/page";
+import PageLayout from "../../containers/page-layout/page-layout.js";
 
-import { projectsBySlug } from "../../graphql/queries";
+import Button from "../../components/button/button.js";
+
+import { projectsBySlug } from "../../graphql/queries.js";
+
+import { classnames } from "../../utils/helpers.js";
 
 import styles from "./presentation.module.scss";
-import Button from "../../components/button/button";
-import { classnames } from "../../utils/helpers";
 
 export default function CreateProjectPage() {
   const { projectSlug } = useParams();

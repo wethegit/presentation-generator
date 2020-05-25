@@ -1,6 +1,6 @@
 import React from "react";
 
-import PageLayout from "../../containers/page/page";
+import PageLayout from "../../containers/page-layout/page-layout.js";
 
 export default function HomePage() {
   return (

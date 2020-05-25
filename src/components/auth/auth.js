@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import useAuth from "../../hooks/useAuth";
+import useAuth from "../../hooks/use-auth.js";
 
 export default function Auth({ children }) {
   const { loading, user, signIn, completeNewPassword } = useAuth();

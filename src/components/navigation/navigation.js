@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 
-import useAuth from "../../hooks/useAuth";
+import useAuth from "../../hooks/use-auth";
 
 const items = [
   { label: "Home", href: "/" },
@@ -9,7 +9,7 @@ const items = [
 ];
 
 export default function Navigation() {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
 
   return (
     <>
@@ -20,6 +20,11 @@ export default function Navigation() {
               <NavLink to={item.href}>{item.label}</NavLink>
             </li>
           ))}
+          {user.isAdmin && (
+            <li>
+              <NavLink to="/admin">Admin</NavLink>
+            </li>
+          )}
         </ul>
         <button onClick={signOut}>Sign out</button>
       </nav>

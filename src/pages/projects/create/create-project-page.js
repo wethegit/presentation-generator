@@ -1,49 +1,23 @@
 import React, { useState } from "react";
 import gql from "graphql-tag";
 import { useMutation } from "@apollo/react-hooks";
+import { Storage } from "aws-amplify";
+import slugify from "slugify";
 
-import PageLayout from "../../../containers/page/page";
+import PageLayout from "../../../containers/page-layout/page-layout.js";
 
 import {
   createProject,
   createConcept,
   createPage,
-} from "../../../graphql/mutations";
+} from "../../../graphql/mutations.js";
 
-import { CLIENTS, SIZES } from "../../../utils/consts";
+import useAuth from "../../../hooks/use-auth.js";
 
-const FORMFIELDS = [
-  {
-    name: "title",
-    label: "Title",
-    type: "text",
-    required: true,
-  },
-  {
-    name: "slug",
-    label: "Slug",
-    type: "text",
-    required: true,
-  },
-  {
-    name: "client",
-    label: "Client",
-    type: "select",
-    required: true,
-    initialValue: CLIENTS[0],
-    options: CLIENTS.map((name) => {
-      return { value: name, label: name };
-    }),
-  },
-  {
-    name: "description",
-    label: "Description",
-    type: "text",
-    initialValue: null,
-  },
-];
+import { CLIENT_GROUPS, PAGE_SIZES } from "../../../utils/consts.js";
 
 export default function CreateProjectPage() {
+  const { user } = useAuth();
   const [createProjectMutation] = useMutation(gql(createProject));
   const [createConceptMutation] = useMutation(gql(createConcept));
   const [createPageMutation] = useMutation(gql(createPage));
@@ -52,14 +26,8 @@ export default function CreateProjectPage() {
     error: false,
     success: false,
   });
-  const [details, setDetails] = useState(() => {
-    let initial = {};
-
-    FORMFIELDS.forEach(({ name, initialValue }) => {
-      if (initialValue !== null) initial[name] = initialValue || "";
-    });
-
-    return initial;
+  const [details, setDetails] = useState({
+    client: CLIENT_GROUPS[0],
   });
   const [concepts, setConcepts] = useState([]);
 
@@ -70,15 +38,31 @@ export default function CreateProjectPage() {
 
     try {
       // create project
+      // first upload logo so get the key and add to the entry
+      let { logo, ...projectDetails } = details;
+
+      if (logo) {
+        logo = await Storage.put(`${Date.now()}${logo.name}`, logo, {
+          contentType: logo.type,
+        });
+
+        logo = {
+          ...logo,
+          identityId: user.identityId,
+        };
+      }
+
+      // create project and save it to a newProject variable so we can use the id
       const {
         data: { createProject: newProject },
       } = await createProjectMutation({
-        variables: { input: { ...details } },
+        variables: { input: { ...projectDetails, logo } },
       });
 
+      // pages and concepts
       let pagesPromises = [];
       for (let { pages, ...concept } of concepts) {
-        // create concept
+        // create concepts and save to variable so we can get the ID
         const {
           data: { createConcept: newConcept },
         } = await createConceptMutation({
@@ -121,7 +105,9 @@ export default function CreateProjectPage() {
 
   const onDetailsChange = (event) => {
     const target = event.target;
-    const { name, value } = target;
+    let { name, value, type } = target;
+
+    if (type === "file") value = target.files[0];
 
     setDetails((cur) => {
       return { ...cur, [name]: value };
@@ -130,20 +116,24 @@ export default function CreateProjectPage() {
 
   const onClickAddConcept = () => {
     setConcepts((cur) =>
-      cur.concat([{ name: `Concept ${cur.length + 1}`, pages: [] }])
+      cur.concat([
+        { name: `Concept ${cur.length + 1}`, moodboard: null, pages: [] },
+      ])
     );
   };
 
   const onConceptValueChange = (event) => {
     const target = event.target;
     let { conceptIndex, prop } = target.dataset;
-    const val = target.value;
+    let { value, type } = target;
+
+    if (type === "file") value = target.files[0];
 
     conceptIndex = parseInt(conceptIndex);
 
     setConcepts((cur) =>
       cur.map((concept, index) => {
-        if (index === conceptIndex) concept[prop] = val;
+        if (index === conceptIndex) concept[prop] = value;
         return concept;
       })
     );
@@ -175,7 +165,11 @@ export default function CreateProjectPage() {
       const update = [...cur];
       const concept = { ...update[conceptIndex] };
       concept.pages = concept.pages.concat([
-        { name: `Page ${concept.pages.length + 1}`, size: SIZES[0] },
+        {
+          name: `Page ${concept.pages.length + 1}`,
+          size: PAGE_SIZES[0],
+          image: null,
+        },
       ]);
       update[conceptIndex] = concept;
       return update;
@@ -186,20 +180,31 @@ export default function CreateProjectPage() {
     const target = event.target;
     const conceptIndex = parseInt(target.dataset.conceptIndex);
     const pageIndex = parseInt(target.dataset.pageIndex);
-    const val = target.value;
     const prop = target.dataset.prop;
+    let { value, type } = target;
+
+    if (type === "file") value = target.files[0];
 
     setConcepts((cur) =>
       cur.map((concept, ci) => {
         if (ci === conceptIndex)
           concept.pages = concept.pages.map((page, pi) => {
-            if (ci === conceptIndex && pi === pageIndex) page[prop] = val;
+            if (ci === conceptIndex && pi === pageIndex) page[prop] = value;
             return page;
           });
 
         return concept;
       })
     );
+  };
+
+  const onSlugFocus = () => {
+    if (!details.title) return;
+    slugify(details.title, {
+      replacement: "-",
+      lower: true,
+      strict: true,
+    });
   };
 
   return (
@@ -211,40 +216,75 @@ export default function CreateProjectPage() {
           <legend>Details</legend>
           <table>
             <tbody>
-              {FORMFIELDS.map(({ label, name, type, required, options }) => (
-                <tr key={`form-field-${name}`}>
-                  <td>
-                    <label>{label}</label>
-                  </td>
-                  <td>
-                    {type === "select" ? (
-                      <select
-                        value={details[name]}
-                        name={name}
-                        required={required}
-                        onChange={onDetailsChange}
-                      >
-                        {options.map(({ value, label }) => (
-                          <option
-                            key={`form-field-${name}-option-${value}`}
-                            value={value}
-                          >
-                            {label}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input
-                        onChange={onDetailsChange}
-                        value={details[name]}
-                        name={name}
-                        type={type}
-                        required={required}
-                      />
-                    )}
-                  </td>
-                </tr>
-              ))}
+              <tr>
+                <td>
+                  <label>Title</label>
+                </td>
+                <td>
+                  <input
+                    onChange={onDetailsChange}
+                    value={details.title || ""}
+                    name="title"
+                    type="text"
+                    required
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <label>Slug</label>
+                </td>
+                <td>
+                  <input
+                    onFocus={onSlugFocus}
+                    type="text"
+                    name="slug"
+                    required
+                    onChange={onDetailsChange}
+                    value={details.slug || ""}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <label>Client</label>
+                </td>
+                <td>
+                  <select
+                    value={details.client || CLIENT_GROUPS[0]}
+                    name="client"
+                    required
+                    onChange={onDetailsChange}
+                  >
+                    {CLIENT_GROUPS.map((name) => (
+                      <option key={`client-option-${name}`} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <label>Description</label>
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    name="description"
+                    onChange={onDetailsChange}
+                    value={details.description || ""}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <label>Logo</label>
+                </td>
+                <td>
+                  <input type="file" name="logo" onChange={onDetailsChange} />
+                </td>
+              </tr>
             </tbody>
           </table>
         </fieldset>
@@ -269,11 +309,26 @@ export default function CreateProjectPage() {
                               <input
                                 data-concept-index={conceptIndex}
                                 data-prop="name"
-                                name={`concept-${conceptIndex}-title`}
+                                name={`concept-${conceptIndex}-name`}
                                 type="text"
                                 required
                                 value={concept.name}
                                 onChange={onConceptValueChange}
+                              />
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <label>Moodboard</label>
+                            </td>
+                            <td>
+                              <input
+                                data-concept-index={conceptIndex}
+                                data-prop="moodboard"
+                                name={`concept-${conceptIndex}-moodboard`}
+                                type="file"
+                                onChange={onConceptValueChange}
+                                accept="image/png, image/jpeg"
                               />
                             </td>
                           </tr>
@@ -346,15 +401,39 @@ export default function CreateProjectPage() {
                                                           onPageValueChange
                                                         }
                                                       >
-                                                        {SIZES.map((name) => (
-                                                          <option
-                                                            key={`concept-${conceptIndex}-page-${pageIndex}-size-option-${name}`}
-                                                            value={name}
-                                                          >
-                                                            {name}
-                                                          </option>
-                                                        ))}
+                                                        {PAGE_SIZES.map(
+                                                          (name) => (
+                                                            <option
+                                                              key={`concept-${conceptIndex}-page-${pageIndex}-size-option-${name}`}
+                                                              value={name}
+                                                            >
+                                                              {name}
+                                                            </option>
+                                                          )
+                                                        )}
                                                       </select>
+                                                    </td>
+                                                  </tr>
+                                                  <tr>
+                                                    <td>
+                                                      <label>Image</label>
+                                                    </td>
+                                                    <td>
+                                                      <input
+                                                        data-concept-index={
+                                                          conceptIndex
+                                                        }
+                                                        data-page-index={
+                                                          pageIndex
+                                                        }
+                                                        onChange={
+                                                          onPageValueChange
+                                                        }
+                                                        type="file"
+                                                        name={`concept-${conceptIndex}-page-${pageIndex}-image`}
+                                                        data-prop="image"
+                                                        required
+                                                      />
                                                     </td>
                                                   </tr>
                                                 </tbody>
