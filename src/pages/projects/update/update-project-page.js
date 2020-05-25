@@ -160,6 +160,7 @@ export default function CreateProjectPage() {
         return { ...cur, success: true, error: false };
       });
     } catch (err) {
+      console.log(err);
       setState((cur) => {
         return { ...cur, error: err.message };
       });
@@ -196,7 +197,8 @@ export default function CreateProjectPage() {
 
       // lastly, delete project
       // first the logo
-      if (project.logo.key) promises.push(Storage.remove(project.logo.key));
+      if (project.logo && project.logo.key)
+        promises.push(Storage.remove(project.logo.key));
 
       promises.push(
         deleteProjectMutation({
@@ -208,6 +210,7 @@ export default function CreateProjectPage() {
 
       history.push("/projects");
     } catch (error) {
+      console.log(error);
       setState(() => {
         return { success: false, error, loading: false };
       });

@@ -15,7 +15,7 @@ const ProjectsLanding = () => {
 
   return (
     <PageLayout>
-      <h3>Show list of projects</h3>
+      <h3>Projects</h3>
       <Link to={`${url}/create`}>New Project</Link>
       <hr />
       {loading && <p>Loading...</p>}

@@ -51,7 +51,8 @@ export default function AdminPage() {
 
   return (
     <PageLayout>
-      <h1>Create new user</h1>
+      <h1>Admin</h1>
+      <h2>Create new user</h2>
       {state.error && <p>{state.error}</p>}
       {state.success && <p>Success!</p>}
       <form onSubmit={createNewUser}>
