@@ -16,12 +16,6 @@ type Project
   logo: S3Object
   concepts: [Concept]
     @connection(keyName: "byConcept", fields: ["id"], sortField: "createdAt")
-    @auth(
-      rules: [
-        { allow: groups, groups: ["WTC", "Admin"] }
-        { allow: groups, groupsField: "client", operations: [read] }
-      ]
-    )
 }
 
 enum ClientGroupEnum {
@@ -33,25 +27,35 @@ enum ClientGroupEnum {
 type Concept
   @model(queries: null)
   @key(name: "byConcept", fields: ["projectID"])
-  @auth(rules: [{ allow: groups, groups: ["Admin", "WTC"] }]) {
+  @auth(
+    rules: [
+      {
+        allow: groups
+        groups: ["Admin", "WTC"]
+        operations: [create, update, delete]
+      }
+    ]
+  ) {
   id: ID!
   name: String!
   projectID: ID!
   moodboard: S3Object
   pages: [Page]
     @connection(keyName: "byPage", fields: ["id"], sortField: "createdAt")
-    @auth(
-      rules: [
-        { allow: groups, groups: ["WTC", "Admin"] }
-        { allow: groups, groupsField: "client", operations: [read] }
-      ]
-    )
 }
 
 type Page
   @model(queries: null)
   @key(name: "byPage", fields: ["conceptID"])
-  @auth(rules: [{ allow: groups, groups: ["Admin", "WTC"] }]) {
+  @auth(
+    rules: [
+      {
+        allow: groups
+        groups: ["Admin", "WTC"]
+        operations: [create, update, delete]
+      }
+    ]
+  ) {
   id: ID!
   name: String!
   size: PageSizeEnum!
