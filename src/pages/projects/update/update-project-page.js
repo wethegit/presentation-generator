@@ -53,6 +53,18 @@ export default function CreateProjectPage() {
         project.logo.url = url;
       }
 
+      if (project.concepts) {
+        for (let concept of project.concepts.items) {
+          if (concept.moodboard) {
+            const url = await Storage.get(concept.moodboard.key, {
+              identityId: concept.moodboard.identityId,
+            });
+
+            concept.moodboard.url = url;
+          }
+        }
+      }
+
       setState((cur) => {
         return { ...cur, loading: false };
       });
@@ -180,7 +192,7 @@ export default function CreateProjectPage() {
       let promises = [];
 
       // delete children
-      for (let { id: conceptId, pages } of project.concepts.items) {
+      for (let { id: conceptId, moodboard, pages } of project.concepts.items) {
         // check for ids because maybe they added but didn't save
         for (let { id: pageId } of pages.items) {
           if (pageId)
@@ -189,10 +201,14 @@ export default function CreateProjectPage() {
             );
         }
 
-        if (conceptId)
+        if (conceptId) {
+          if (moodboard && moodboard.key)
+            promises.push(Storage.remove(moodboard.key));
+
           promises.push(
             deleteConceptMutation({ variables: { input: { id: conceptId } } })
           );
+        }
       }
 
       // lastly, delete project
@@ -346,9 +362,6 @@ export default function CreateProjectPage() {
 
   return (
     <PageLayout>
-      {/* loading current project entry */}
-      {loading && <p>Loading</p>}
-
       {/* no data returned */}
       {!loading && !project && <p>No project found</p>}
 
@@ -444,21 +457,23 @@ export default function CreateProjectPage() {
                         onChange={onDetailsChange}
                       />
                       <br />
-                      {project.logo && <img src={project.logo.url} alt="" />}
+                      {project.logo && project.logo.key && project.logo.url && (
+                        <img src={project.logo.url} alt="" />
+                      )}
                     </td>
                   </tr>
                 </tbody>
               </table>
             </fieldset>
-            <fieldset>
+            <fieldset disabled={loading || state.loading}>
               <legend>Concepts</legend>
-              {project.concepts.items.length > 0 && (
+              {project.concepts && project.concepts.items.length > 0 && (
                 <table>
                   <tbody>
                     {project.concepts.items.map((concept, conceptIndex) => (
                       <tr key={`concept-${conceptIndex}-${concept.id}`}>
                         <td colSpan="2">
-                          <fieldset>
+                          <fieldset disabled={loading || state.loading}>
                             <table>
                               <tbody>
                                 <tr>
@@ -478,8 +493,32 @@ export default function CreateProjectPage() {
                                   </td>
                                 </tr>
                                 <tr>
+                                  <td>
+                                    <label>Moodboard</label>
+                                  </td>
+                                  <td>
+                                    <input
+                                      type="file"
+                                      name={`concept-${conceptIndex}-moodboard`}
+                                      data-prop="moodboard"
+                                      data-concept-index={conceptIndex}
+                                      onChange={onConceptChange}
+                                    />
+                                    <br />
+                                    {concept.moodboard.key &&
+                                      concept.moodboard.url && (
+                                        <img
+                                          src={concept.moodboard.url}
+                                          alt=""
+                                        />
+                                      )}
+                                  </td>
+                                </tr>
+                                <tr>
                                   <td colSpan="2">
-                                    <fieldset>
+                                    <fieldset
+                                      disabled={loading || state.loading}
+                                    >
                                       <legend>Pages</legend>
                                       <button
                                         type="button"
@@ -496,7 +535,11 @@ export default function CreateProjectPage() {
                                                 key={`concept-${conceptIndex}-page-${pageIndex}`}
                                               >
                                                 <td colSpan="2">
-                                                  <fieldset>
+                                                  <fieldset
+                                                    disabled={
+                                                      loading || state.loading
+                                                    }
+                                                  >
                                                     <table>
                                                       <tbody>
                                                         <tr>
@@ -601,10 +644,12 @@ export default function CreateProjectPage() {
                 Add Concept
               </button>
             </fieldset>
-            <button type="submit">Update</button>
-            <button type="button" onClick={onClickDelete}>
-              Delete
-            </button>
+            <fieldset disabled={loading || state.loading}>
+              <button type="submit">Update</button>
+              <button type="button" onClick={onClickDelete}>
+                Delete
+              </button>
+            </fieldset>
           </form>
         </>
       )}

@@ -3,6 +3,7 @@ import gql from "graphql-tag";
 import { useMutation } from "@apollo/react-hooks";
 import { Storage } from "aws-amplify";
 import slugify from "slugify";
+import update from "immutability-helper";
 
 import PageLayout from "../../../containers/page-layout/page-layout.js";
 
@@ -61,13 +62,29 @@ export default function CreateProjectPage() {
 
       // pages and concepts
       let pagesPromises = [];
-      for (let { pages, ...concept } of concepts) {
+      for (let { pages, moodboard, ...concept } of concepts) {
         // create concepts and save to variable so we can get the ID
+        // check if there is a moodboard so upload and get the ID
+        if (moodboard) {
+          moodboard = await Storage.put(
+            `${Date.now()}${moodboard.name}`,
+            moodboard,
+            {
+              contentType: moodboard.type,
+            }
+          );
+
+          moodboard = {
+            ...moodboard,
+            identityId: user.identityId,
+          };
+        }
+
         const {
           data: { createConcept: newConcept },
         } = await createConceptMutation({
           variables: {
-            input: { projectID: newProject.id, ...concept },
+            input: { projectID: newProject.id, moodboard, ...concept },
           },
         });
 
@@ -109,16 +126,16 @@ export default function CreateProjectPage() {
 
     if (type === "file") value = target.files[0];
 
-    setDetails((cur) => {
-      return { ...cur, [name]: value };
-    });
+    setDetails((cur) => update(cur, { [name]: { $set: value } }));
   };
 
   const onClickAddConcept = () => {
     setConcepts((cur) =>
-      cur.concat([
-        { name: `Concept ${cur.length + 1}`, moodboard: null, pages: [] },
-      ])
+      update(cur, {
+        $push: [
+          { name: `Concept ${cur.length + 1}`, moodboard: null, pages: [] },
+        ],
+      })
     );
   };
 
@@ -132,17 +149,14 @@ export default function CreateProjectPage() {
     conceptIndex = parseInt(conceptIndex);
 
     setConcepts((cur) =>
-      cur.map((concept, index) => {
-        if (index === conceptIndex) concept[prop] = value;
-        return concept;
-      })
+      update(cur, { [conceptIndex]: { [prop]: { $set: value } } })
     );
   };
 
   const onClickRemoveConcept = (event) => {
     const conceptIndex = parseInt(event.target.dataset.conceptIndex);
 
-    setConcepts((cur) => cur.filter((c, index) => index !== conceptIndex));
+    setConcepts((cur) => update(cur, { $splice: [[conceptIndex, 1]] }));
   };
 
   const onClickRemovePage = (event) => {
@@ -150,30 +164,28 @@ export default function CreateProjectPage() {
     const pageIndex = parseInt(event.target.dataset.conceptIndex);
 
     setConcepts((cur) =>
-      cur.map((concept, index) => {
-        if (index === conceptIndex)
-          concept.pages = concept.pages.filter((p, pi) => pi !== pageIndex);
-        return concept;
-      })
+      update(cur, { [conceptIndex]: { pages: { $splice: [[pageIndex, 1]] } } })
     );
   };
 
   const onClickAddPage = (event) => {
     const conceptIndex = parseInt(event.target.dataset.conceptIndex);
 
-    setConcepts((cur) => {
-      const update = [...cur];
-      const concept = { ...update[conceptIndex] };
-      concept.pages = concept.pages.concat([
-        {
-          name: `Page ${concept.pages.length + 1}`,
-          size: PAGE_SIZES[0],
-          image: null,
+    setConcepts((cur) =>
+      update(cur, {
+        [conceptIndex]: {
+          pages: {
+            $push: [
+              {
+                name: `Page ${cur[conceptIndex].pages.length + 1}`,
+                size: PAGE_SIZES[0],
+                image: null,
+              },
+            ],
+          },
         },
-      ]);
-      update[conceptIndex] = concept;
-      return update;
-    });
+      })
+    );
   };
 
   const onPageValueChange = (event) => {
@@ -186,25 +198,24 @@ export default function CreateProjectPage() {
     if (type === "file") value = target.files[0];
 
     setConcepts((cur) =>
-      cur.map((concept, ci) => {
-        if (ci === conceptIndex)
-          concept.pages = concept.pages.map((page, pi) => {
-            if (ci === conceptIndex && pi === pageIndex) page[prop] = value;
-            return page;
-          });
-
-        return concept;
+      update(cur, {
+        [conceptIndex]: { pages: { [pageIndex]: { [prop]: { $set: value } } } },
       })
     );
   };
 
-  const onSlugFocus = () => {
-    if (!details.title) return;
-    slugify(details.title, {
+  const onSlugFocus = (event) => {
+    const { value } = event.target;
+
+    if (!value) return;
+
+    const slug = slugify(value, {
       replacement: "-",
       lower: true,
       strict: true,
     });
+
+    setDetails((cur) => update(cur, { slug: { $set: slug } }));
   };
 
   return (
@@ -227,6 +238,7 @@ export default function CreateProjectPage() {
                     name="title"
                     type="text"
                     required
+                    onBlur={onSlugFocus}
                   />
                 </td>
               </tr>
@@ -236,7 +248,6 @@ export default function CreateProjectPage() {
                 </td>
                 <td>
                   <input
-                    onFocus={onSlugFocus}
                     type="text"
                     name="slug"
                     required

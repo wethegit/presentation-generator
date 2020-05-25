@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Switch } from "react-router-dom";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 import PrivateRoute from "../../containers/private-route/private-route.js";
 
@@ -7,6 +7,7 @@ import ProjectsPage from "../../pages/projects/projects-page.js";
 import HomePage from "../../pages/home/home-page.js";
 import PresentationPage from "../../pages/presentation/presentation-page.js";
 import AdminPage from "../../pages/admin/admin-page.js";
+import NoMatchPage from "../../pages/no-match/no-match-page.js";
 
 export default function App() {
   return (
@@ -27,6 +28,9 @@ export default function App() {
         <PrivateRoute path="/admin">
           <AdminPage />
         </PrivateRoute>
+        <Route path="*">
+          <NoMatchPage />
+        </Route>
       </Switch>
     </Router>
   );

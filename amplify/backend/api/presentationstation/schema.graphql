@@ -2,12 +2,7 @@ type Project
   @model
   @auth(
     rules: [
-      { allow: groups, groups: ["Admin"] }
-      {
-        allow: groups
-        groups: ["WTC"]
-        operations: [create, update, delete, read]
-      }
+      { allow: groups, groups: ["WTC", "Admin"] }
       { allow: groups, groupsField: "client", operations: [read] }
     ]
   )
@@ -21,6 +16,12 @@ type Project
   logo: S3Object
   concepts: [Concept]
     @connection(keyName: "byConcept", fields: ["id"], sortField: "createdAt")
+    @auth(
+      rules: [
+        { allow: groups, groups: ["WTC", "Admin"] }
+        { allow: groups, groupsField: "client", operations: [read] }
+      ]
+    )
 }
 
 enum ClientGroupEnum {
@@ -39,6 +40,12 @@ type Concept
   moodboard: S3Object
   pages: [Page]
     @connection(keyName: "byPage", fields: ["id"], sortField: "createdAt")
+    @auth(
+      rules: [
+        { allow: groups, groups: ["WTC", "Admin"] }
+        { allow: groups, groupsField: "client", operations: [read] }
+      ]
+    )
 }
 
 type Page

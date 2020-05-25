@@ -1,7 +1,8 @@
-import React, { useMemo } from "react";
+import React, { useState } from "react";
 import gql from "graphql-tag";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@apollo/react-hooks";
+import { Storage } from "aws-amplify";
 
 import PageLayout from "../../containers/page-layout/page-layout.js";
 
@@ -15,10 +16,45 @@ import styles from "./presentation.module.scss";
 
 export default function CreateProjectPage() {
   const { projectSlug } = useParams();
-  const { loading, error, data } = useQuery(gql(projectsBySlug), {
+  const { error } = useQuery(gql(projectsBySlug), {
     variables: { slug: projectSlug },
+    onCompleted: async (data) => {
+      if (
+        !data ||
+        !data.projectsBySlug.items ||
+        data.projectsBySlug.items.length <= 0
+      ) {
+        setLoading(false);
+        return;
+      }
+
+      const project = data.projectsBySlug.items[0];
+      if (project.logo) {
+        const url = await Storage.get(project.logo.key, {
+          identityId: project.logo.identityId,
+        });
+
+        project.logo.url = url;
+      }
+
+      if (project.concepts && project.concepts.items.length > 0) {
+        for (let concept of project.concepts.items) {
+          if (concept.moodboard) {
+            const url = await Storage.get(concept.moodboard.key, {
+              identityId: concept.moodboard.identityId,
+            });
+
+            concept.moodboard.url = url;
+          }
+        }
+      }
+
+      setProject(project);
+    },
   });
-  const project = useMemo(() => data?.projectsBySlug?.items[0] || null, [data]);
+  const [loading, setLoading] = useState(true);
+  const [project, setProject] = useState(null);
+  const [screen, setScreen] = useState("intro");
 
   return (
     <PageLayout className={styles.PresentationPage} noNavigation={true}>
@@ -35,7 +71,13 @@ export default function CreateProjectPage() {
       {project && (
         <>
           <div className={classnames([styles.screen, styles.intro])}>
-            {/* <img className={styles.intro__logo" src="./logo.png" alt /> */}
+            {project.logo && (
+              <img
+                className={styles.intro__logo}
+                src={project.logo.url}
+                alt=""
+              />
+            )}
             <h1 className={styles.intro__title}>{project.title}</h1>
             <h2 className={styles.intro__client}>{project.client}</h2>
             <h3 className={styles.intro__date}>
@@ -156,7 +198,7 @@ export default function CreateProjectPage() {
                   </li>
                 </ul>
               </nav>
-              {project.concepts.items.length > 0 && (
+              {project.concepts && project.concepts.items.length > 0 && (
                 <nav
                   className={classnames([styles.sidebar__nav, styles.concepts])}
                   aria-label="Concepts"
