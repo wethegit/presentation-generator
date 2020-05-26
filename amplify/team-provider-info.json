@@ -20,6 +20,9 @@
                     "appId": "dxqx0i3hal4ht",
                     "type": "cicd"
                 }
+            },
+            "function": {
+                "AdminQueriesfeea2e5d": {}
             }
         }
     },
