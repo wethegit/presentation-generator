@@ -20,9 +20,13 @@ import {
 } from "../../../graphql/mutations.js";
 import { getProject } from "../../../graphql/queries.js";
 
+import useAuth from "../../../hooks/use-auth.js";
+
 import { CLIENT_GROUPS, PAGE_SIZES } from "../../../utils/consts.js";
+import Alert from "../../../components/alert/alert.js";
 
 export default function CreateProjectPage() {
+  const { user } = useAuth();
   const history = useHistory();
   const { projectId } = useParams();
   const [state, setState] = useState({
@@ -39,7 +43,7 @@ export default function CreateProjectPage() {
   const [createPageMutation] = useMutation(gql(createPage));
   const [updatePageMutation] = useMutation(gql(updatePage));
   const [deletePageMutation] = useMutation(gql(deletePage));
-  const { loading, error, data } = useQuery(gql(getProject), {
+  const { loading, error, data, refetch } = useQuery(gql(getProject), {
     variables: { id: projectId },
     onCompleted: async () => {
       if (!data.getProject) return;
@@ -92,27 +96,74 @@ export default function CreateProjectPage() {
       return { success: false, error: false, loading: true };
     });
 
-    const { concepts, title, slug, client, description } = project;
+    let {
+      concepts,
+      title,
+      slug,
+      client,
+      description,
+      logo: { url, ...logo },
+    } = project;
 
     try {
       let promises = [];
+      const imagePrefix = `${Date.now()}-${slug}-`;
 
       // Update project details
+      // check if the logo was updated
+      if (logo.new) {
+        // check for previous logo and delete it
+        if (logo.key) promises.push(Storage.remove(logo.key));
+
+        logo = await Storage.put(`${imagePrefix}${logo.new.name}`, logo.new, {
+          contentType: logo.new.type,
+        });
+
+        logo = {
+          ...logo,
+          identityId: user.identityId,
+        };
+      }
+
       promises.push(
         await updateProjectMutation({
           variables: {
-            input: { id: projectId, title, slug, client, description },
+            input: { id: projectId, title, slug, client, description, logo },
           },
         })
       );
 
       // go through concepts
-      for (let { id: conceptId, pages, name } of concepts.items) {
+      for (let {
+        id: conceptId,
+        pages,
+        name,
+        moodboard: { url, ...moodboard },
+      } of concepts.items) {
+        // check if the moodboard was updated
+        if (moodboard.new) {
+          // check for previous moodboard and delete it
+          if (moodboard.key) promises.push(Storage.remove(moodboard.key));
+
+          moodboard = await Storage.put(
+            `${imagePrefix}concept-${moodboard.new.name}`,
+            moodboard.new,
+            {
+              contentType: moodboard.new.type,
+            }
+          );
+
+          moodboard = {
+            ...moodboard,
+            identityId: user.identityId,
+          };
+        }
+
         // if the concept has an id, we update it
         if (conceptId)
           promises.push(
             updateConceptMutation({
-              variables: { input: { id: conceptId, name } },
+              variables: { input: { id: conceptId, name, moodboard } },
             })
           );
         // otherwise we create it
@@ -122,7 +173,7 @@ export default function CreateProjectPage() {
             data: { createConcept: newConcept },
           } = await createConceptMutation({
             variables: {
-              input: { projectID: projectId, name },
+              input: { projectID: projectId, name, moodboard },
             },
           });
 
@@ -131,37 +182,69 @@ export default function CreateProjectPage() {
         }
 
         // Go through pages and basically do the same thing
-        for (let { id: pageId, name, size } of pages.items) {
+        for (let {
+          id: pageId,
+          name,
+          size,
+          image: { url, ...image },
+        } of pages.items) {
+          // check if the moodboard was updated
+          if (image.new) {
+            // check for previous image and delete it
+            if (image.key) promises.push(Storage.remove(image.key));
+
+            image = await Storage.put(
+              `${imagePrefix}page-${image.new.name}`,
+              image.new,
+              {
+                contentType: image.new.type,
+              }
+            );
+
+            image = {
+              ...image,
+              identityId: user.identityId,
+            };
+          }
+
           // if page has id we update it
           if (pageId)
             promises.push(
               updatePageMutation({
-                variables: { input: { id: pageId, name, size } },
+                variables: { input: { id: pageId, name, size, image } },
               })
             );
           // otherwise create page
           else
             promises.push(
               createPageMutation({
-                variables: { input: { conceptID: conceptId, name, size } },
+                variables: {
+                  input: { conceptID: conceptId, name, size, image },
+                },
               })
             );
         }
       }
 
       // go through original data and compare to see if any concept or page was deleted
-      for (let { pages, id: conceptId } of data.getProject.concepts.items) {
+      for (let { pages, id: conceptId, moodboard } of data.getProject.concepts
+        .items) {
         // delete concept and all pages
         const updatedConcept = concepts.items.find(
           ({ id }) => id === conceptId
         );
 
         if (!updatedConcept) {
-          for (let { id: pageId } of pages.items) {
+          for (let { id: pageId, image } of pages.items) {
+            if (image && image.key) promises.push(Storage.remove(image.key));
+
             promises.push(
               deletePageMutation({ variables: { input: { id: pageId } } })
             );
           }
+
+          if (moodboard && moodboard.key)
+            promises.push(Storage.remove(moodboard.key));
 
           promises.push(
             deleteConceptMutation({ variables: { input: { id: conceptId } } })
@@ -169,16 +252,21 @@ export default function CreateProjectPage() {
         }
         // checks if a page was deleted
         else {
-          for (let { id: pageId } of pages.items) {
-            if (!updatedConcept.pages.items.find(({ id }) => id === pageId))
+          for (let { id: pageId, image } of pages.items) {
+            if (!updatedConcept.pages.items.find(({ id }) => id === pageId)) {
+              if (image && image.key) promises.push(Storage.remove(image.key));
+
               promises.push(
                 deletePageMutation({ variables: { input: { id: pageId } } })
               );
+            }
           }
         }
       }
 
       promises = await Promise.all(promises);
+
+      refetch();
 
       setState((cur) => {
         return { ...cur, success: true, error: false };
@@ -206,7 +294,9 @@ export default function CreateProjectPage() {
       // delete children
       for (let { id: conceptId, moodboard, pages } of project.concepts.items) {
         // check for ids because maybe they added but didn't save
-        for (let { id: pageId } of pages.items) {
+        for (let { id: pageId, image } of pages.items) {
+          if (image && image.key) promises.push(Storage.remove(image.key));
+
           if (pageId)
             promises.push(
               deletePageMutation({ variables: { input: { id: pageId } } })
@@ -236,7 +326,11 @@ export default function CreateProjectPage() {
 
       promises = await Promise.all(promises);
 
-      history.push("/projects");
+      history.push(
+        `/projects?alert=success&alertMessage=${encodeURIComponent(
+          "Project deleted."
+        )}`
+      );
     } catch (error) {
       console.log(error);
       setState(() => {
@@ -249,9 +343,10 @@ export default function CreateProjectPage() {
     const target = event.target;
     let { name, value, type } = target;
 
-    if (type === "file") value = target.files[0];
-
-    setProject((cur) => update(cur, { [name]: { $set: value } }));
+    setProject((cur) => {
+      if (type === "file") value = { ...cur[name], new: target.files[0] };
+      return update(cur, { [name]: { $set: value } });
+    });
   };
 
   const onClickAddConcept = () => {
@@ -263,6 +358,7 @@ export default function CreateProjectPage() {
               {
                 name: `Concept ${cur.concepts.items.length + 1}`,
                 pages: { items: [] },
+                moodboard: null,
               },
             ],
           },
@@ -283,15 +379,19 @@ export default function CreateProjectPage() {
   const onConceptChange = (event) => {
     const target = event.target;
     let { conceptIndex, prop } = target.dataset;
-    const { value } = target;
+    let { value, type } = target;
 
     conceptIndex = parseInt(conceptIndex);
 
-    setProject((cur) =>
-      update(cur, {
+    setProject((cur) => {
+      if (type === "file")
+        value = Object.assign({}, cur.concepts.items[conceptIndex][prop], {
+          new: target.files[0],
+        });
+      return update(cur, {
         concepts: { items: { [conceptIndex]: { [prop]: { $set: value } } } },
-      })
-    );
+      });
+    });
   };
 
   const onClickAddPage = (event) => {
@@ -310,6 +410,7 @@ export default function CreateProjectPage() {
                         cur.concepts.items[conceptIndex].pages.items.length + 1
                       }`,
                       size: PAGE_SIZES[0],
+                      image: null,
                     },
                   ],
                 },
@@ -324,13 +425,22 @@ export default function CreateProjectPage() {
   const onPageChange = (event) => {
     const target = event.target;
     let { conceptIndex, pageIndex, prop } = target.dataset;
-    const { value } = target;
+    let { value, type } = target;
 
     conceptIndex = parseInt(conceptIndex);
     pageIndex = parseInt(pageIndex);
 
-    setProject((cur) =>
-      update(cur, {
+    setProject((cur) => {
+      if (type === "file")
+        value = Object.assign(
+          {},
+          cur.concepts.items[conceptIndex].pages.items[pageIndex][prop],
+          {
+            new: target.files[0],
+          }
+        );
+
+      return update(cur, {
         concepts: {
           items: {
             [conceptIndex]: {
@@ -346,8 +456,8 @@ export default function CreateProjectPage() {
             },
           },
         },
-      })
-    );
+      });
+    });
   };
 
   const onClickRemovePage = (event) => {
@@ -378,13 +488,15 @@ export default function CreateProjectPage() {
       {!loading && !project && <p>No project found</p>}
 
       {/* errors from current entry */}
-      {error && <p>Error: {error.message}</p>}
+      {error && <Alert type="error">{error.message}</Alert>}
 
       {/* errors from mutations */}
-      {state.error && <p>Error: {state.error}</p>}
+      {state.error && <Alert type="error">{state.error}</Alert>}
 
       {/* success for updates */}
-      {state.success && <p>Succes!</p>}
+      {state.success && (
+        <Alert type="success">Project updated with success!</Alert>
+      )}
 
       {project && (
         <>
@@ -467,10 +579,11 @@ export default function CreateProjectPage() {
                         name="logo"
                         type="file"
                         onChange={onDetailsChange}
+                        accept="image/png, image/jpeg"
                       />
-                      <br />
+                      <p>Current logo</p>
                       {project.logo && project.logo.key && project.logo.url && (
-                        <img src={project.logo.url} alt="" />
+                        <img src={project.logo.url} alt="" width="50" />
                       )}
                     </td>
                   </tr>
@@ -527,7 +640,11 @@ export default function CreateProjectPage() {
                             {concept.moodboard &&
                               concept.moodboard.key &&
                               concept.moodboard.url && (
-                                <img src={concept.moodboard.url} alt="" />
+                                <img
+                                  src={concept.moodboard.url}
+                                  alt=""
+                                  width="50"
+                                />
                               )}
                           </td>
                         </tr>
@@ -617,7 +734,11 @@ export default function CreateProjectPage() {
                                   {page.image &&
                                     page.image.key &&
                                     page.image.url && (
-                                      <img src={page.image.url} alt="" />
+                                      <img
+                                        src={page.image.url}
+                                        alt=""
+                                        width="50"
+                                      />
                                     )}
                                 </td>
                               </tr>

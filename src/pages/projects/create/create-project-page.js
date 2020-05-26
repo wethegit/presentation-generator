@@ -69,7 +69,7 @@ export default function CreateProjectPage() {
         // check if there is a moodboard so upload and get the ID
         if (moodboard) {
           moodboard = await Storage.put(
-            `${imagePrefix}-concept-${moodboard.name}`,
+            `${imagePrefix}concept-${moodboard.name}`,
             moodboard,
             {
               contentType: moodboard.type,
@@ -96,7 +96,7 @@ export default function CreateProjectPage() {
           // upload image
           if (image) {
             image = await Storage.put(
-              `${imagePrefix}-page-${image.name}`,
+              `${imagePrefix}page-${image.name}`,
               image,
               {
                 contentType: image.type,
@@ -360,7 +360,12 @@ export default function CreateProjectPage() {
                   <label>Logo</label>
                 </td>
                 <td>
-                  <input type="file" name="logo" onChange={onDetailsChange} />
+                  <input
+                    type="file"
+                    name="logo"
+                    accept="image/png, image/jpeg"
+                    onChange={onDetailsChange}
+                  />
                   <button type="button" onClick={onClickRemoveLogo}>
                     Remove logo
                   </button>
@@ -500,6 +505,7 @@ export default function CreateProjectPage() {
                                 data-prop="image"
                                 onChange={onPageValueChange}
                                 type="file"
+                                accept="image/png, image/jpeg"
                                 name={`concept-${conceptIndex}-page-${pageIndex}-image`}
                                 required
                               />
