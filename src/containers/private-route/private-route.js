@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
 import { Route } from "react-router-dom";
-import useAuth from "../../hooks/useAuth";
-import BlockedPage from "../../pages/blocked";
+
+import useAuth from "../../hooks/use-auth.js";
+import BlockedPage from "../../pages/blocked/blocked-page.js";
 
 export default function PrivateRoute({
   children,
@@ -9,12 +10,11 @@ export default function PrivateRoute({
   ...rest
 }) {
   const { user, loading } = useAuth();
-  const isAdmin = useMemo(() => !loading && user.groups.includes("Admin"), [
-    user,
-    loading,
-  ]);
+  const isAdmin = !loading && user && user.isAdmin;
+
   const canRender = useMemo(() => {
     if (isAdmin) return true;
+    if (!user.groups) return false;
 
     let allowed = false;
 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Auth, API } from "aws-amplify";
 
-import PageLayout from "../../containers/page/page";
+import PageLayout from "../../containers/page-layout/page-layout.js";
 
 export default function AdminPage() {
   const [state, setState] = useState({
@@ -51,30 +51,48 @@ export default function AdminPage() {
 
   return (
     <PageLayout>
-      <h1>Create new user</h1>
+      <h1>Admin</h1>
+      <h2>Create new user</h2>
       {state.error && <p>{state.error}</p>}
       {state.success && <p>Success!</p>}
       <form onSubmit={createNewUser}>
         <fieldset disabled={state.loading}>
-          <label>
-            Username
-            <input name="username" type="text" required />
-          </label>
-          <label>
-            Password
-            <input name="password" type="password" required />
-          </label>
-          <label>
-            User group
-            <select name="groupname">
-              <option defaultValue value="WTC">
-                WTC
-              </option>
-              <option value="NOA">NOA</option>
-              <option value="TPCI">TPCI</option>
-              <option value="Admin">Admin</option>
-            </select>
-          </label>
+          <table>
+            <tbody>
+              <tr>
+                <td>
+                  <label>Username</label>
+                </td>
+                <td>
+                  <input name="username" type="text" required />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <label>Password</label>
+                </td>
+                <td>
+                  <input name="password" type="password" required />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <label>User group</label>
+                </td>
+                <td>
+                  <select name="groupname">
+                    <option defaultValue value="WTC">
+                      WTC
+                    </option>
+                    <option value="NOA">NOA</option>
+                    <option value="TPCI">TPCI</option>
+                    <option value="Admin">Admin</option>
+                  </select>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
           <button type="submit">Create</button>
         </fieldset>
       </form>

@@ -1,22 +1,33 @@
 import React from "react";
-import { Switch, Route, useRouteMatch, Link } from "react-router-dom";
+import {
+  Switch,
+  Route,
+  useRouteMatch,
+  Link,
+  useLocation,
+} from "react-router-dom";
 import gql from "graphql-tag";
 import { useQuery } from "@apollo/react-hooks";
 
-import { listProjects } from "../../graphql/queries";
-import PageLayout from "../../containers/page/page.js";
+import { listProjects } from "../../graphql/queries.js";
+import PageLayout from "../../containers/page-layout/page-layout.js";
 
-import CreateProjectPage from "./create/index.js";
-import UpdateProjectPage from "./update/index.js";
+import CreateProjectPage from "./create/create-project-page.js";
+import UpdateProjectPage from "./update/update-project-page.js";
+import Alert from "../../components/alert/alert.js";
 
 const ProjectsLanding = () => {
-  let { url } = useRouteMatch();
+  const { url } = useRouteMatch();
+  const query = new URLSearchParams(useLocation().search);
   const { loading, error, data } = useQuery(gql(listProjects));
 
   return (
     <PageLayout>
-      <h3>Show list of projects</h3>
+      <h1>Projects</h1>
       <Link to={`${url}/create`}>New Project</Link>
+      {query.get("alert") && (
+        <Alert type={query.get("alert")}>{query.get("alertMessage")}</Alert>
+      )}
       <hr />
       {loading && <p>Loading...</p>}
       {error && <p>Error! {error.message}</p>}

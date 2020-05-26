@@ -1,0 +1,32 @@
+@import "../../scss/helpers.scss";
+
+.Alert {
+  background-color: rgba(#90f1ef, 0.1);
+  border: solid 1px #90f1ef;
+  border-radius: spaceby(0.5);
+  margin-top: 0;
+  padding: spaceby(2);
+
+  &::before {
+    content: "🛅";
+    margin-right: spaceby();
+  }
+}
+
+.Alert--success {
+  border-color: #aaf683;
+  background-color: rgba(#aaf683, 0.1);
+
+  &::before {
+    content: "✅";
+  }
+}
+
+.Alert--error {
+  border-color: #ee6055;
+  background-color: rgba(#ee6055, 0.1);
+
+  &::before {
+    content: "⛔️";
+  }
+}

@@ -1,0 +1,20 @@
+{
+    "groupPermissionMap": {
+        "Admin": [
+            "create/update",
+            "read",
+            "delete"
+        ],
+        "WTC": [
+            "create/update",
+            "read",
+            "delete"
+        ],
+        "NOA": [
+            "read"
+        ],
+        "TPCI": [
+            "read"
+        ]
+    }
+}

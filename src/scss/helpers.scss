@@ -1,0 +1,78 @@
+// Usage
+// http://codepen.io/macx/full/qmkje
+//
+// .dark-on-light {
+//   @include font-smoothing(off);
+// }
+//
+// .light-on-dark {
+//   @include font-smoothing(on);
+// }
+@mixin font-smoothing($value: on) {
+  @if $value == on {
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+  } @else {
+    -moz-osx-font-smoothing: auto;
+    -webkit-font-smoothing: subpixel-antialiased;
+  }
+}
+
+@mixin full-absolute {
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+@mixin center-absolute {
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@mixin visually-hidden {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
+
+@mixin hover {
+  @media (hover: hover) {
+    &:hover {
+      @content;
+    }
+  }
+}
+
+@function percent-ratio($to, $from) {
+  @return percentage($to / $from);
+}
+
+@function spaceby($space: 1) {
+  @if $space == 0 {
+    @return 0;
+  } @else if $space == 1 {
+    @return var(--base-space);
+  } @else {
+    @return calc(var(--base-space) * #{$space});
+  }
+}
+
+@mixin visually-hidden() {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}

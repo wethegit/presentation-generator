@@ -9,17 +9,29 @@ export const getProject = /* GraphQL */ `
       slug
       client
       description
+      logo {
+        key
+        identityId
+      }
       concepts {
         items {
           id
           name
           projectID
+          moodboard {
+            key
+            identityId
+          }
           pages {
             items {
               id
               name
               size
               conceptID
+              image {
+                key
+                identityId
+              }
               createdAt
               updatedAt
             }
@@ -48,17 +60,29 @@ export const listProjects = /* GraphQL */ `
         slug
         client
         description
+        logo {
+          key
+          identityId
+        }
         concepts {
           items {
             id
             name
             projectID
+            moodboard {
+              key
+              identityId
+            }
             pages {
               items {
                 id
                 name
                 size
                 conceptID
+                image {
+                  key
+                  identityId
+                }
                 createdAt
                 updatedAt
               }
@@ -97,17 +121,29 @@ export const projectsByClient = /* GraphQL */ `
         slug
         client
         description
+        logo {
+          key
+          identityId
+        }
         concepts {
           items {
             id
             name
             projectID
+            moodboard {
+              key
+              identityId
+            }
             pages {
               items {
                 id
                 name
                 size
                 conceptID
+                image {
+                  key
+                  identityId
+                }
                 createdAt
                 updatedAt
               }
@@ -146,17 +182,29 @@ export const projectsBySlug = /* GraphQL */ `
         slug
         client
         description
+        logo {
+          key
+          identityId
+        }
         concepts {
           items {
             id
             name
             projectID
+            moodboard {
+              key
+              identityId
+            }
             pages {
               items {
                 id
                 name
                 size
                 conceptID
+                image {
+                  key
+                  identityId
+                }
                 createdAt
                 updatedAt
               }
