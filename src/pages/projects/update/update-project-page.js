@@ -62,6 +62,18 @@ export default function CreateProjectPage() {
 
             concept.moodboard.url = url;
           }
+
+          if (concept.pages) {
+            for (let page of concept.pages.items) {
+              if (page.image) {
+                const url = await Storage.get(page.image.key, {
+                  identityId: page.image.identityId,
+                });
+
+                page.image.url = url;
+              }
+            }
+          }
         }
       }
 
@@ -376,14 +388,14 @@ export default function CreateProjectPage() {
 
       {project && (
         <>
+          <h1>Update Project</h1>
+          <h2>{project.title}</h2>
+          <Link to={`/presentation/${project?.slug}`}>See presentation</Link>
           <form onSubmit={onSubmit}>
             {/* disables if loading entry or mutation */}
             <fieldset disabled={loading || state.loading}>
               <legend>Details</legend>
-              <Link to={`/presentation/${project?.slug}`}>
-                See presentation
-              </Link>
-              <hr />
+              <p>Project details</p>
               <table>
                 <tbody>
                   <tr>
@@ -465,191 +477,176 @@ export default function CreateProjectPage() {
                 </tbody>
               </table>
             </fieldset>
+
             <fieldset disabled={loading || state.loading}>
               <legend>Concepts</legend>
-              {project.concepts && project.concepts.items.length > 0 && (
-                <table>
-                  <tbody>
-                    {project.concepts.items.map((concept, conceptIndex) => (
-                      <tr key={`concept-${conceptIndex}-${concept.id}`}>
-                        <td colSpan="2">
-                          <fieldset disabled={loading || state.loading}>
-                            <table>
-                              <tbody>
-                                <tr>
-                                  <td>
-                                    <label>Name</label>
-                                  </td>
-                                  <td>
-                                    <input
-                                      type="text"
-                                      name={`concept-${conceptIndex}-name`}
-                                      data-prop="name"
-                                      data-concept-index={conceptIndex}
-                                      onChange={onConceptChange}
-                                      value={concept.name}
-                                      required
-                                    />
-                                  </td>
-                                </tr>
-                                <tr>
-                                  <td>
-                                    <label>Moodboard</label>
-                                  </td>
-                                  <td>
-                                    <input
-                                      type="file"
-                                      name={`concept-${conceptIndex}-moodboard`}
-                                      data-prop="moodboard"
-                                      data-concept-index={conceptIndex}
-                                      onChange={onConceptChange}
-                                    />
-                                    <br />
-                                    {concept.moodboard.key &&
-                                      concept.moodboard.url && (
-                                        <img
-                                          src={concept.moodboard.url}
-                                          alt=""
-                                        />
-                                      )}
-                                  </td>
-                                </tr>
-                                <tr>
-                                  <td colSpan="2">
-                                    <fieldset
-                                      disabled={loading || state.loading}
-                                    >
-                                      <legend>Pages</legend>
-                                      <button
-                                        type="button"
-                                        onClick={onClickAddPage}
-                                        data-concept-index={conceptIndex}
-                                      >
-                                        Add Page
-                                      </button>
-                                      <table>
-                                        <tbody>
-                                          {concept.pages.items.map(
-                                            (page, pageIndex) => (
-                                              <tr
-                                                key={`concept-${conceptIndex}-page-${pageIndex}`}
-                                              >
-                                                <td colSpan="2">
-                                                  <fieldset
-                                                    disabled={
-                                                      loading || state.loading
-                                                    }
-                                                  >
-                                                    <table>
-                                                      <tbody>
-                                                        <tr>
-                                                          <td>
-                                                            <label>Name</label>
-                                                          </td>
-                                                          <td>
-                                                            <input
-                                                              onChange={
-                                                                onPageChange
-                                                              }
-                                                              type="text"
-                                                              value={page.name}
-                                                              name={`concept-${conceptIndex}-page-${pageIndex}-name`}
-                                                              data-prop="name"
-                                                              data-concept-index={
-                                                                conceptIndex
-                                                              }
-                                                              data-page-index={
-                                                                pageIndex
-                                                              }
-                                                              required
-                                                            />
-                                                          </td>
-                                                        </tr>
-                                                        <tr>
-                                                          <td>
-                                                            <label>Size</label>
-                                                          </td>
-                                                          <td>
-                                                            <select
-                                                              onChange={
-                                                                onPageChange
-                                                              }
-                                                              value={page.size}
-                                                              name={`concept-${conceptIndex}-page-${pageIndex}-size`}
-                                                              data-prop="size"
-                                                              data-concept-index={
-                                                                conceptIndex
-                                                              }
-                                                              data-page-index={
-                                                                pageIndex
-                                                              }
-                                                              required
-                                                            >
-                                                              {PAGE_SIZES.map(
-                                                                (size) => (
-                                                                  <option
-                                                                    key={`concept-${conceptIndex}-page-${pageIndex}-size-${size}`}
-                                                                    value={size}
-                                                                  >
-                                                                    {size}
-                                                                  </option>
-                                                                )
-                                                              )}
-                                                            </select>
-                                                          </td>
-                                                        </tr>
-                                                      </tbody>
-                                                    </table>
-                                                    <button
-                                                      onClick={
-                                                        onClickRemovePage
-                                                      }
-                                                      data-concept-index={
-                                                        conceptIndex
-                                                      }
-                                                      data-page-index={
-                                                        pageIndex
-                                                      }
-                                                      type="button"
-                                                    >
-                                                      Remove page
-                                                    </button>
-                                                  </fieldset>
-                                                </td>
-                                              </tr>
-                                            )
-                                          )}
-                                        </tbody>
-                                      </table>
-                                    </fieldset>
-                                  </td>
-                                </tr>
-                              </tbody>
-                            </table>
-                            <button
-                              data-concept-index={conceptIndex}
-                              type="button"
-                              onClick={onClickDeleteConcept}
-                            >
-                              Delete concept
-                            </button>
-                          </fieldset>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+              <p>Project concepts.</p>
               <button type="button" onClick={onClickAddConcept}>
                 Add Concept
               </button>
+              {project.concepts &&
+                project.concepts.items.length > 0 &&
+                project.concepts.items.map((concept, conceptIndex) => (
+                  <fieldset
+                    disabled={loading || state.loading}
+                    key={`concept-${conceptIndex}`}
+                  >
+                    <legend>{concept.name}</legend>
+                    <p>Concept details.</p>
+                    <table>
+                      <tbody>
+                        <tr>
+                          <td>
+                            <label>Name</label>
+                          </td>
+                          <td>
+                            <input
+                              type="text"
+                              name={`concept-${conceptIndex}-name`}
+                              data-prop="name"
+                              data-concept-index={conceptIndex}
+                              onChange={onConceptChange}
+                              value={concept.name}
+                              required
+                            />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <label>Moodboard</label>
+                          </td>
+                          <td>
+                            <input
+                              type="file"
+                              name={`concept-${conceptIndex}-moodboard`}
+                              data-prop="moodboard"
+                              data-concept-index={conceptIndex}
+                              onChange={onConceptChange}
+                            />
+                            <br />
+                            {concept.moodboard &&
+                              concept.moodboard.key &&
+                              concept.moodboard.url && (
+                                <img src={concept.moodboard.url} alt="" />
+                              )}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <button
+                      data-concept-index={conceptIndex}
+                      type="button"
+                      onClick={onClickDeleteConcept}
+                    >
+                      Delete Concept
+                    </button>
+
+                    <fieldset disabled={loading || state.loading}>
+                      <legend>Pages</legend>
+                      <p>Concept pages.</p>
+                      <button
+                        type="button"
+                        onClick={onClickAddPage}
+                        data-concept-index={conceptIndex}
+                      >
+                        Add Page
+                      </button>
+                      {concept.pages.items.map((page, pageIndex) => (
+                        <fieldset
+                          key={`concept-${conceptIndex}-page-${pageIndex}`}
+                          disabled={loading || state.loading}
+                        >
+                          <legend>{page.name}</legend>
+                          <p>Page details.</p>
+                          <table>
+                            <tbody>
+                              <tr>
+                                <td>
+                                  <label>Name</label>
+                                </td>
+                                <td>
+                                  <input
+                                    onChange={onPageChange}
+                                    type="text"
+                                    value={page.name}
+                                    name={`concept-${conceptIndex}-page-${pageIndex}-name`}
+                                    data-prop="name"
+                                    data-concept-index={conceptIndex}
+                                    data-page-index={pageIndex}
+                                    required
+                                  />
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>
+                                  <label>Size</label>
+                                </td>
+                                <td>
+                                  <select
+                                    onChange={onPageChange}
+                                    value={page.size}
+                                    name={`concept-${conceptIndex}-page-${pageIndex}-size`}
+                                    data-prop="size"
+                                    data-concept-index={conceptIndex}
+                                    data-page-index={pageIndex}
+                                    required
+                                  >
+                                    {PAGE_SIZES.map((size) => (
+                                      <option
+                                        key={`concept-${conceptIndex}-page-${pageIndex}-size-${size}`}
+                                        value={size}
+                                      >
+                                        {size}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>Image</td>
+                                <td>
+                                  <input
+                                    data-concept-index={conceptIndex}
+                                    data-page-index={pageIndex}
+                                    data-prop="image"
+                                    onChange={onPageChange}
+                                    type="file"
+                                    name={`concept-${conceptIndex}-page-${pageIndex}-image`}
+                                  />
+                                  <br />
+                                  {page.image &&
+                                    page.image.key &&
+                                    page.image.url && (
+                                      <img src={page.image.url} alt="" />
+                                    )}
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                          <button
+                            onClick={onClickRemovePage}
+                            data-concept-index={conceptIndex}
+                            data-page-index={pageIndex}
+                            type="button"
+                          >
+                            Delete page
+                          </button>
+                        </fieldset>
+                      ))}
+                    </fieldset>
+                  </fieldset>
+                ))}
             </fieldset>
-            <fieldset disabled={loading || state.loading}>
-              <button type="submit">Update</button>
-              <button type="button" onClick={onClickDelete}>
-                Delete
-              </button>
-            </fieldset>
+            <button type="submit" disabled={loading || state.loading}>
+              Update project
+            </button>
+            <button
+              type="button"
+              disabled={loading || state.loading}
+              onClick={onClickDelete}
+            >
+              Delete Project
+            </button>
           </form>
         </>
       )}

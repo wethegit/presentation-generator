@@ -37,7 +37,7 @@ export default function CreateProjectPage() {
         project.logo.url = url;
       }
 
-      if (project.concepts && project.concepts.items.length > 0) {
+      if (project.concepts) {
         for (let concept of project.concepts.items) {
           if (concept.moodboard) {
             const url = await Storage.get(concept.moodboard.key, {
@@ -46,9 +46,22 @@ export default function CreateProjectPage() {
 
             concept.moodboard.url = url;
           }
+
+          if (concept.pages) {
+            for (let page of concept.pages.items) {
+              if (page.image) {
+                const url = await Storage.get(page.image.key, {
+                  identityId: page.image.identityId,
+                });
+
+                page.image.url = url;
+              }
+            }
+          }
         }
       }
 
+      setLoading(false);
       setProject(project);
     },
   });
@@ -57,7 +70,11 @@ export default function CreateProjectPage() {
   const [screen, setScreen] = useState("intro");
 
   return (
-    <PageLayout className={styles.PresentationPage} noNavigation={true}>
+    <PageLayout
+      className={styles.PresentationPage}
+      noNavigation={true}
+      noFooter={true}
+    >
       {/* loading current project entry */}
       {loading && <p>Loading</p>}
 

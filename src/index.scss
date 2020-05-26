@@ -1,10 +1,12 @@
 @import "~normalize.css";
+@import "./scss/helpers.scss";
 
 :root {
   --c-primary: #181818;
   --c-secondary: #ffffff;
   --c-accent-1: #4a4a4a;
   --c-accent-2: #f72d1a;
+  --base-space: 8px;
 }
 
 *,
@@ -54,16 +56,100 @@ ul {
   margin: 0;
 }
 
+a {
+  color: inherit;
+}
+
+hr {
+  border: solid 1px black;
+}
+
 /* ------------------------------------------------
                     Helpers
 ------------------------------------------------ */
 .visually-hidden {
-  border: 0;
-  clip: rect(0 0 0 0);
-  height: 1px;
-  margin: -1px;
-  overflow: hidden;
-  padding: 0;
-  position: absolute;
-  width: 1px;
+  @include visually-hidden;
+}
+
+.wrapper {
+  margin: 0 auto;
+  max-width: 1440px;
+  padding: 0 spaceby(2);
+}
+
+/* ------------------------------------------------
+                    Forms
+------------------------------------------------ */
+form {
+  // border-radius: spaceby();
+  // box-shadow: 0 0 10px 0 rgba(black, 0.1);
+  // padding: spaceby(2);
+  margin-top: spaceby(2);
+
+  table {
+    margin-top: spaceby(2);
+    margin-bottom: spaceby();
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  td {
+    padding: spaceby() spaceby(0.5) spaceby() 0;
+    border-bottom: solid 1px rgba(black, 0.1);
+
+    &[colspan="2"] {
+      border-bottom: 0;
+      padding: 0;
+    }
+  }
+
+  > fieldset {
+    border-left: none;
+    padding-left: 0;
+
+    > legend {
+      font-size: 26px;
+    }
+
+    > fieldset {
+      > legend {
+        font-size: 22px;
+      }
+
+      > fieldset {
+        > legend {
+          font-size: 18px;
+        }
+      }
+    }
+  }
+}
+
+fieldset {
+  border: none;
+  border-left: solid 2px black;
+  margin: spaceby(4) 0 spaceby(3);
+  padding: 0 0 0 spaceby(2);
+
+  &:first-child {
+    margin-top: 0;
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+legend {
+  float: left;
+  font-size: 16px;
+  font-weight: bold;
+
+  + p {
+    margin: spaceby() 0 spaceby(2);
+    font-size: 14px;
+    clear: both;
+  }
 }

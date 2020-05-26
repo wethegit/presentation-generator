@@ -1,5 +1,14 @@
+@import "../../scss/helpers.scss";
+
 .PageLayout {
-  margin: 0 auto;
-  max-width: 1440px;
-  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.PageLayout__children {
+  flex: 1;
+  padding-bottom: spaceby(2);
+  padding-top: spaceby(2);
+  width: 100%;
 }
