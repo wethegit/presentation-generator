@@ -17,7 +17,6 @@ export const onCreateProject = /* GraphQL */ `
         items {
           id
           name
-          projectID
           moodboard {
             key
             identityId
@@ -26,17 +25,27 @@ export const onCreateProject = /* GraphQL */ `
             items {
               id
               name
-              size
-              conceptID
-              image {
-                key
-                identityId
+              variants {
+                items {
+                  id
+                  size
+                  image {
+                    key
+                    identityId
+                  }
+                  pageID
+                  createdAt
+                  updatedAt
+                }
+                nextToken
               }
+              conceptID
               createdAt
               updatedAt
             }
             nextToken
           }
+          projectID
           createdAt
           updatedAt
         }
@@ -63,7 +72,6 @@ export const onUpdateProject = /* GraphQL */ `
         items {
           id
           name
-          projectID
           moodboard {
             key
             identityId
@@ -72,17 +80,27 @@ export const onUpdateProject = /* GraphQL */ `
             items {
               id
               name
-              size
-              conceptID
-              image {
-                key
-                identityId
+              variants {
+                items {
+                  id
+                  size
+                  image {
+                    key
+                    identityId
+                  }
+                  pageID
+                  createdAt
+                  updatedAt
+                }
+                nextToken
               }
+              conceptID
               createdAt
               updatedAt
             }
             nextToken
           }
+          projectID
           createdAt
           updatedAt
         }
@@ -109,7 +127,6 @@ export const onDeleteProject = /* GraphQL */ `
         items {
           id
           name
-          projectID
           moodboard {
             key
             identityId
@@ -118,17 +135,27 @@ export const onDeleteProject = /* GraphQL */ `
             items {
               id
               name
-              size
-              conceptID
-              image {
-                key
-                identityId
+              variants {
+                items {
+                  id
+                  size
+                  image {
+                    key
+                    identityId
+                  }
+                  pageID
+                  createdAt
+                  updatedAt
+                }
+                nextToken
               }
+              conceptID
               createdAt
               updatedAt
             }
             nextToken
           }
+          projectID
           createdAt
           updatedAt
         }
@@ -144,7 +171,6 @@ export const onCreateConcept = /* GraphQL */ `
     onCreateConcept {
       id
       name
-      projectID
       moodboard {
         key
         identityId
@@ -153,17 +179,27 @@ export const onCreateConcept = /* GraphQL */ `
         items {
           id
           name
-          size
-          conceptID
-          image {
-            key
-            identityId
+          variants {
+            items {
+              id
+              size
+              image {
+                key
+                identityId
+              }
+              pageID
+              createdAt
+              updatedAt
+            }
+            nextToken
           }
+          conceptID
           createdAt
           updatedAt
         }
         nextToken
       }
+      projectID
       createdAt
       updatedAt
     }
@@ -174,7 +210,6 @@ export const onUpdateConcept = /* GraphQL */ `
     onUpdateConcept {
       id
       name
-      projectID
       moodboard {
         key
         identityId
@@ -183,17 +218,27 @@ export const onUpdateConcept = /* GraphQL */ `
         items {
           id
           name
-          size
-          conceptID
-          image {
-            key
-            identityId
+          variants {
+            items {
+              id
+              size
+              image {
+                key
+                identityId
+              }
+              pageID
+              createdAt
+              updatedAt
+            }
+            nextToken
           }
+          conceptID
           createdAt
           updatedAt
         }
         nextToken
       }
+      projectID
       createdAt
       updatedAt
     }
@@ -204,7 +249,6 @@ export const onDeleteConcept = /* GraphQL */ `
     onDeleteConcept {
       id
       name
-      projectID
       moodboard {
         key
         identityId
@@ -213,17 +257,27 @@ export const onDeleteConcept = /* GraphQL */ `
         items {
           id
           name
-          size
-          conceptID
-          image {
-            key
-            identityId
+          variants {
+            items {
+              id
+              size
+              image {
+                key
+                identityId
+              }
+              pageID
+              createdAt
+              updatedAt
+            }
+            nextToken
           }
+          conceptID
           createdAt
           updatedAt
         }
         nextToken
       }
+      projectID
       createdAt
       updatedAt
     }
@@ -234,12 +288,21 @@ export const onCreatePage = /* GraphQL */ `
     onCreatePage {
       id
       name
-      size
-      conceptID
-      image {
-        key
-        identityId
+      variants {
+        items {
+          id
+          size
+          image {
+            key
+            identityId
+          }
+          pageID
+          createdAt
+          updatedAt
+        }
+        nextToken
       }
+      conceptID
       createdAt
       updatedAt
     }
@@ -250,12 +313,21 @@ export const onUpdatePage = /* GraphQL */ `
     onUpdatePage {
       id
       name
-      size
-      conceptID
-      image {
-        key
-        identityId
+      variants {
+        items {
+          id
+          size
+          image {
+            key
+            identityId
+          }
+          pageID
+          createdAt
+          updatedAt
+        }
+        nextToken
       }
+      conceptID
       createdAt
       updatedAt
     }
@@ -266,12 +338,66 @@ export const onDeletePage = /* GraphQL */ `
     onDeletePage {
       id
       name
-      size
+      variants {
+        items {
+          id
+          size
+          image {
+            key
+            identityId
+          }
+          pageID
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
       conceptID
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onCreatePageVariant = /* GraphQL */ `
+  subscription OnCreatePageVariant {
+    onCreatePageVariant {
+      id
+      size
       image {
         key
         identityId
       }
+      pageID
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onUpdatePageVariant = /* GraphQL */ `
+  subscription OnUpdatePageVariant {
+    onUpdatePageVariant {
+      id
+      size
+      image {
+        key
+        identityId
+      }
+      pageID
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onDeletePageVariant = /* GraphQL */ `
+  subscription OnDeletePageVariant {
+    onDeletePageVariant {
+      id
+      size
+      image {
+        key
+        identityId
+      }
+      pageID
       createdAt
       updatedAt
     }

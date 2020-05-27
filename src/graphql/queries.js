@@ -17,7 +17,6 @@ export const getProject = /* GraphQL */ `
         items {
           id
           name
-          projectID
           moodboard {
             key
             identityId
@@ -26,17 +25,27 @@ export const getProject = /* GraphQL */ `
             items {
               id
               name
-              size
-              conceptID
-              image {
-                key
-                identityId
+              variants {
+                items {
+                  id
+                  size
+                  image {
+                    key
+                    identityId
+                  }
+                  pageID
+                  createdAt
+                  updatedAt
+                }
+                nextToken
               }
+              conceptID
               createdAt
               updatedAt
             }
             nextToken
           }
+          projectID
           createdAt
           updatedAt
         }
@@ -68,7 +77,6 @@ export const listProjects = /* GraphQL */ `
           items {
             id
             name
-            projectID
             moodboard {
               key
               identityId
@@ -77,17 +85,27 @@ export const listProjects = /* GraphQL */ `
               items {
                 id
                 name
-                size
-                conceptID
-                image {
-                  key
-                  identityId
+                variants {
+                  items {
+                    id
+                    size
+                    image {
+                      key
+                      identityId
+                    }
+                    pageID
+                    createdAt
+                    updatedAt
+                  }
+                  nextToken
                 }
+                conceptID
                 createdAt
                 updatedAt
               }
               nextToken
             }
+            projectID
             createdAt
             updatedAt
           }
@@ -129,7 +147,6 @@ export const projectsByClient = /* GraphQL */ `
           items {
             id
             name
-            projectID
             moodboard {
               key
               identityId
@@ -138,17 +155,27 @@ export const projectsByClient = /* GraphQL */ `
               items {
                 id
                 name
-                size
-                conceptID
-                image {
-                  key
-                  identityId
+                variants {
+                  items {
+                    id
+                    size
+                    image {
+                      key
+                      identityId
+                    }
+                    pageID
+                    createdAt
+                    updatedAt
+                  }
+                  nextToken
                 }
+                conceptID
                 createdAt
                 updatedAt
               }
               nextToken
             }
+            projectID
             createdAt
             updatedAt
           }
@@ -190,7 +217,6 @@ export const projectsBySlug = /* GraphQL */ `
           items {
             id
             name
-            projectID
             moodboard {
               key
               identityId
@@ -199,22 +225,62 @@ export const projectsBySlug = /* GraphQL */ `
               items {
                 id
                 name
-                size
-                conceptID
-                image {
-                  key
-                  identityId
+                variants {
+                  items {
+                    id
+                    size
+                    image {
+                      key
+                      identityId
+                    }
+                    pageID
+                    createdAt
+                    updatedAt
+                  }
+                  nextToken
                 }
+                conceptID
                 createdAt
                 updatedAt
               }
               nextToken
             }
+            projectID
             createdAt
             updatedAt
           }
           nextToken
         }
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+  }
+`;
+export const pageVariantBySize = /* GraphQL */ `
+  query PageVariantBySize(
+    $size: PageSizeEnum
+    $sortDirection: ModelSortDirection
+    $filter: ModelPageVariantFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    pageVariantBySize(
+      size: $size
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        size
+        image {
+          key
+          identityId
+        }
+        pageID
         createdAt
         updatedAt
       }

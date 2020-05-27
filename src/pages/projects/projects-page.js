@@ -55,7 +55,7 @@ export default function Projects() {
       <Route path={`${path}/create`}>
         <CreateProjectPage />
       </Route>
-      <Route path={`${path}/:projectId`}>
+      <Route path={`${path}/:projectID`}>
         <UpdateProjectPage />
       </Route>
     </Switch>

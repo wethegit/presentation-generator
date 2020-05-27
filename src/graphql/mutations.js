@@ -20,7 +20,6 @@ export const createProject = /* GraphQL */ `
         items {
           id
           name
-          projectID
           moodboard {
             key
             identityId
@@ -29,17 +28,27 @@ export const createProject = /* GraphQL */ `
             items {
               id
               name
-              size
-              conceptID
-              image {
-                key
-                identityId
+              variants {
+                items {
+                  id
+                  size
+                  image {
+                    key
+                    identityId
+                  }
+                  pageID
+                  createdAt
+                  updatedAt
+                }
+                nextToken
               }
+              conceptID
               createdAt
               updatedAt
             }
             nextToken
           }
+          projectID
           createdAt
           updatedAt
         }
@@ -69,7 +78,6 @@ export const updateProject = /* GraphQL */ `
         items {
           id
           name
-          projectID
           moodboard {
             key
             identityId
@@ -78,17 +86,27 @@ export const updateProject = /* GraphQL */ `
             items {
               id
               name
-              size
-              conceptID
-              image {
-                key
-                identityId
+              variants {
+                items {
+                  id
+                  size
+                  image {
+                    key
+                    identityId
+                  }
+                  pageID
+                  createdAt
+                  updatedAt
+                }
+                nextToken
               }
+              conceptID
               createdAt
               updatedAt
             }
             nextToken
           }
+          projectID
           createdAt
           updatedAt
         }
@@ -118,7 +136,6 @@ export const deleteProject = /* GraphQL */ `
         items {
           id
           name
-          projectID
           moodboard {
             key
             identityId
@@ -127,17 +144,27 @@ export const deleteProject = /* GraphQL */ `
             items {
               id
               name
-              size
-              conceptID
-              image {
-                key
-                identityId
+              variants {
+                items {
+                  id
+                  size
+                  image {
+                    key
+                    identityId
+                  }
+                  pageID
+                  createdAt
+                  updatedAt
+                }
+                nextToken
               }
+              conceptID
               createdAt
               updatedAt
             }
             nextToken
           }
+          projectID
           createdAt
           updatedAt
         }
@@ -156,7 +183,6 @@ export const createConcept = /* GraphQL */ `
     createConcept(input: $input, condition: $condition) {
       id
       name
-      projectID
       moodboard {
         key
         identityId
@@ -165,17 +191,27 @@ export const createConcept = /* GraphQL */ `
         items {
           id
           name
-          size
-          conceptID
-          image {
-            key
-            identityId
+          variants {
+            items {
+              id
+              size
+              image {
+                key
+                identityId
+              }
+              pageID
+              createdAt
+              updatedAt
+            }
+            nextToken
           }
+          conceptID
           createdAt
           updatedAt
         }
         nextToken
       }
+      projectID
       createdAt
       updatedAt
     }
@@ -189,7 +225,6 @@ export const updateConcept = /* GraphQL */ `
     updateConcept(input: $input, condition: $condition) {
       id
       name
-      projectID
       moodboard {
         key
         identityId
@@ -198,17 +233,27 @@ export const updateConcept = /* GraphQL */ `
         items {
           id
           name
-          size
-          conceptID
-          image {
-            key
-            identityId
+          variants {
+            items {
+              id
+              size
+              image {
+                key
+                identityId
+              }
+              pageID
+              createdAt
+              updatedAt
+            }
+            nextToken
           }
+          conceptID
           createdAt
           updatedAt
         }
         nextToken
       }
+      projectID
       createdAt
       updatedAt
     }
@@ -222,7 +267,6 @@ export const deleteConcept = /* GraphQL */ `
     deleteConcept(input: $input, condition: $condition) {
       id
       name
-      projectID
       moodboard {
         key
         identityId
@@ -231,17 +275,27 @@ export const deleteConcept = /* GraphQL */ `
         items {
           id
           name
-          size
-          conceptID
-          image {
-            key
-            identityId
+          variants {
+            items {
+              id
+              size
+              image {
+                key
+                identityId
+              }
+              pageID
+              createdAt
+              updatedAt
+            }
+            nextToken
           }
+          conceptID
           createdAt
           updatedAt
         }
         nextToken
       }
+      projectID
       createdAt
       updatedAt
     }
@@ -255,12 +309,21 @@ export const createPage = /* GraphQL */ `
     createPage(input: $input, condition: $condition) {
       id
       name
-      size
-      conceptID
-      image {
-        key
-        identityId
+      variants {
+        items {
+          id
+          size
+          image {
+            key
+            identityId
+          }
+          pageID
+          createdAt
+          updatedAt
+        }
+        nextToken
       }
+      conceptID
       createdAt
       updatedAt
     }
@@ -274,12 +337,21 @@ export const updatePage = /* GraphQL */ `
     updatePage(input: $input, condition: $condition) {
       id
       name
-      size
-      conceptID
-      image {
-        key
-        identityId
+      variants {
+        items {
+          id
+          size
+          image {
+            key
+            identityId
+          }
+          pageID
+          createdAt
+          updatedAt
+        }
+        nextToken
       }
+      conceptID
       createdAt
       updatedAt
     }
@@ -293,12 +365,75 @@ export const deletePage = /* GraphQL */ `
     deletePage(input: $input, condition: $condition) {
       id
       name
-      size
+      variants {
+        items {
+          id
+          size
+          image {
+            key
+            identityId
+          }
+          pageID
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
       conceptID
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const createPageVariant = /* GraphQL */ `
+  mutation CreatePageVariant(
+    $input: CreatePageVariantInput!
+    $condition: ModelPageVariantConditionInput
+  ) {
+    createPageVariant(input: $input, condition: $condition) {
+      id
+      size
       image {
         key
         identityId
       }
+      pageID
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const updatePageVariant = /* GraphQL */ `
+  mutation UpdatePageVariant(
+    $input: UpdatePageVariantInput!
+    $condition: ModelPageVariantConditionInput
+  ) {
+    updatePageVariant(input: $input, condition: $condition) {
+      id
+      size
+      image {
+        key
+        identityId
+      }
+      pageID
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const deletePageVariant = /* GraphQL */ `
+  mutation DeletePageVariant(
+    $input: DeletePageVariantInput!
+    $condition: ModelPageVariantConditionInput
+  ) {
+    deletePageVariant(input: $input, condition: $condition) {
+      id
+      size
+      image {
+        key
+        identityId
+      }
+      pageID
       createdAt
       updatedAt
     }

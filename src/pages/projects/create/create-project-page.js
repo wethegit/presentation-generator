@@ -1,28 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import gql from "graphql-tag";
 import { useMutation } from "@apollo/react-hooks";
 import { Storage } from "aws-amplify";
 import slugify from "slugify";
 import update from "immutability-helper";
 
-import PageLayout from "../../../containers/page-layout/page-layout.js";
-
 import {
   createProject,
   createConcept,
   createPage,
+  createPageVariant,
 } from "../../../graphql/mutations.js";
+
+import PageLayout from "../../../containers/page-layout/page-layout.js";
+
+import Alert from "../../../components/alert/alert.js";
 
 import useAuth from "../../../hooks/use-auth.js";
 
 import { CLIENT_GROUPS, PAGE_SIZES } from "../../../utils/consts.js";
-import Alert from "../../../components/alert/alert.js";
 
 export default function CreateProjectPage() {
   const { user } = useAuth();
   const [createProjectMutation] = useMutation(gql(createProject));
   const [createConceptMutation] = useMutation(gql(createConcept));
   const [createPageMutation] = useMutation(gql(createPage));
+  const [createPageVariantMutation] = useMutation(gql(createPageVariant));
   const [state, setState] = useState({
     loading: false,
     error: false,
@@ -32,13 +35,97 @@ export default function CreateProjectPage() {
     client: CLIENT_GROUPS[0],
   });
   const [concepts, setConcepts] = useState([]);
+  const imagePrefix = useMemo(() => `${Date.now()}-${details.slug}-`, [
+    details.slug,
+  ]);
+
+  const createVariantEntry = async (pageID, variant) => {
+    let { image, ...variantDetails } = variant;
+
+    // upload image
+    if (image) {
+      image = await Storage.put(`${imagePrefix}variant-${image.name}`, image, {
+        contentType: image.type,
+      });
+
+      image = {
+        ...image,
+        identityId: user.identityId,
+      };
+    }
+
+    // create variant
+    const {
+      data: { createPageVariant: newVariant },
+    } = await createPageVariantMutation({
+      variables: {
+        input: { pageID, image, ...variantDetails },
+      },
+    });
+
+    return newVariant;
+  };
+
+  const createPageEntry = async (conceptID, page) => {
+    let { variants, ...pageDetails } = page;
+
+    // create concepts and save to variable so we can get the ID
+    const {
+      data: { createPage: newPage },
+    } = await createPageMutation({
+      variables: {
+        input: { conceptID, ...pageDetails },
+      },
+    });
+
+    // variants
+    await Promise.all(
+      variants.map((variant) => createVariantEntry(newPage.id, variant))
+    );
+
+    return newPage;
+  };
+
+  const createConceptEntry = async (projectID, concept) => {
+    let { pages, moodboard, ...conceptDetails } = concept;
+
+    // check if there is a moodboard  upload and get the ID
+    if (moodboard) {
+      moodboard = await Storage.put(
+        `${imagePrefix}concept-${moodboard.name}`,
+        moodboard,
+        {
+          contentType: moodboard.type,
+        }
+      );
+
+      moodboard = {
+        ...moodboard,
+        identityId: user.identityId,
+      };
+    }
+
+    // create concepts and save to variable so we can get the ID
+    const {
+      data: { createConcept: newConcept },
+    } = await createConceptMutation({
+      variables: {
+        input: { projectID, moodboard, ...conceptDetails },
+      },
+    });
+
+    // pages and variants
+    await Promise.all(
+      pages.map((page) => createPageEntry(newConcept.id, page))
+    );
+
+    return newConcept;
+  };
 
   const onSubmit = async (event) => {
     event.preventDefault();
 
     setState({ loading: true, error: false, success: false });
-
-    const imagePrefix = `${Date.now()}-${details.slug}-`;
 
     try {
       // create project
@@ -63,68 +150,10 @@ export default function CreateProjectPage() {
         variables: { input: { ...projectDetails, logo } },
       });
 
-      // pages and concepts
-      let pagesPromises = [];
-      for (let { pages, moodboard, ...conceptDetails } of concepts) {
-        // check if there is a moodboard so upload and get the ID
-        if (moodboard) {
-          moodboard = await Storage.put(
-            `${imagePrefix}concept-${moodboard.name}`,
-            moodboard,
-            {
-              contentType: moodboard.type,
-            }
-          );
-
-          moodboard = {
-            ...moodboard,
-            identityId: user.identityId,
-          };
-        }
-
-        // create concepts and save to variable so we can get the ID
-        const {
-          data: { createConcept: newConcept },
-        } = await createConceptMutation({
-          variables: {
-            input: { projectID: newProject.id, moodboard, ...conceptDetails },
-          },
-        });
-
-        // pages
-        for (let { image, ...pageDetails } of pages) {
-          // upload image
-          if (image) {
-            image = await Storage.put(
-              `${imagePrefix}page-${image.name}`,
-              image,
-              {
-                contentType: image.type,
-              }
-            );
-
-            image = {
-              ...image,
-              identityId: user.identityId,
-            };
-          }
-
-          // create page
-          pagesPromises.push(
-            createPageMutation({
-              variables: {
-                input: {
-                  conceptID: newConcept.id,
-                  image,
-                  ...pageDetails,
-                },
-              },
-            })
-          );
-        }
-      }
-
-      await Promise.all(pagesPromises);
+      // concepts, pages and variants
+      await Promise.all(
+        concepts.map((concept) => createConceptEntry(newProject.id, concept))
+      );
 
       // clear form and scroll to the top
       setDetails({
@@ -211,8 +240,7 @@ export default function CreateProjectPage() {
             $push: [
               {
                 name: `Page ${cur[conceptIndex].pages.length + 1}`,
-                size: PAGE_SIZES[0],
-                image: null,
+                variants: [],
               },
             ],
           },
@@ -233,6 +261,71 @@ export default function CreateProjectPage() {
     setConcepts((cur) =>
       update(cur, {
         [conceptIndex]: { pages: { [pageIndex]: { [prop]: { $set: value } } } },
+      })
+    );
+  };
+
+  const onClickRemoveVariant = (event) => {
+    const dataset = event.target.dataset;
+    const conceptIndex = parseInt(dataset.conceptIndex);
+    const pageIndex = parseInt(dataset.conceptIndex);
+    const variantIndex = parseInt(dataset.conceptIndex);
+
+    setConcepts((cur) =>
+      update(cur, {
+        [conceptIndex]: {
+          pages: {
+            [pageIndex]: { variants: { $splice: [[variantIndex, 1]] } },
+          },
+        },
+      })
+    );
+  };
+
+  const onClickAddVariant = (event) => {
+    const dataset = event.target.dataset;
+    const conceptIndex = parseInt(dataset.conceptIndex);
+    const pageIndex = parseInt(dataset.pageIndex);
+
+    setConcepts((cur) =>
+      update(cur, {
+        [conceptIndex]: {
+          pages: {
+            [pageIndex]: {
+              variants: {
+                $push: [
+                  {
+                    size: PAGE_SIZES[0],
+                    image: null,
+                  },
+                ],
+              },
+            },
+          },
+        },
+      })
+    );
+  };
+
+  const onVariantValueChange = (event) => {
+    const target = event.target;
+    const conceptIndex = parseInt(target.dataset.conceptIndex);
+    const pageIndex = parseInt(target.dataset.pageIndex);
+    const variantIndex = parseInt(target.dataset.variantIndex);
+    const prop = target.dataset.prop;
+    let { value, type } = target;
+
+    if (type === "file") value = target.files[0];
+
+    setConcepts((cur) =>
+      update(cur, {
+        [conceptIndex]: {
+          pages: {
+            [pageIndex]: {
+              variants: { [variantIndex]: { [prop]: { $set: value } } },
+            },
+          },
+        },
       })
     );
   };
@@ -267,16 +360,23 @@ export default function CreateProjectPage() {
     );
   };
 
-  const onClickRemoveImage = (event) => {
+  const onClickRemoveVariantImage = (event) => {
     const target = event.target;
     const conceptIndex = parseInt(target.dataset.conceptIndex);
     const pageIndex = parseInt(target.dataset.pageIndex);
+    const variantIndex = parseInt(target.dataset.variantIndex);
 
     target.previousElementSibling.value = "";
 
     setConcepts((cur) =>
       update(cur, {
-        [conceptIndex]: { pages: { [pageIndex]: { image: { $set: null } } } },
+        [conceptIndex]: {
+          pages: {
+            [pageIndex]: {
+              variants: { [variantIndex]: { image: { $set: null } } },
+            },
+          },
+        },
       })
     );
   };
@@ -469,56 +569,6 @@ export default function CreateProjectPage() {
                               />
                             </td>
                           </tr>
-                          <tr>
-                            <td>
-                              <label>Size</label>
-                            </td>
-                            <td>
-                              <select
-                                data-concept-index={conceptIndex}
-                                data-page-index={pageIndex}
-                                value={page.size}
-                                onChange={onPageValueChange}
-                                data-prop="size"
-                                name={`concept-${conceptIndex}-page-${pageIndex}-size`}
-                                required
-                              >
-                                {PAGE_SIZES.map((name) => (
-                                  <option
-                                    key={`concept-${conceptIndex}-page-${pageIndex}-size-option-${name}`}
-                                    value={name}
-                                  >
-                                    {name}
-                                  </option>
-                                ))}
-                              </select>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <label>Image</label>
-                            </td>
-                            <td>
-                              <input
-                                data-concept-index={conceptIndex}
-                                data-page-index={pageIndex}
-                                data-prop="image"
-                                onChange={onPageValueChange}
-                                type="file"
-                                accept="image/png, image/jpeg"
-                                name={`concept-${conceptIndex}-page-${pageIndex}-image`}
-                                required
-                              />
-                              <button
-                                data-concept-index={conceptIndex}
-                                data-page-index={pageIndex}
-                                type="button"
-                                onClick={onClickRemoveImage}
-                              >
-                                Remove image
-                              </button>
-                            </td>
-                          </tr>
                         </tbody>
                       </table>
                       <button
@@ -529,6 +579,94 @@ export default function CreateProjectPage() {
                       >
                         Delete {page.name}
                       </button>
+
+                      <fieldset>
+                        <legend>Page Variant</legend>
+                        <p>Page image and size.</p>
+                        <button
+                          type="button"
+                          data-concept-index={conceptIndex}
+                          data-page-index={pageIndex}
+                          onClick={onClickAddVariant}
+                        >
+                          Add Page Variant
+                        </button>
+                        {page.variants.length > 0 &&
+                          page.variants.map((variant, variantIndex) => (
+                            <fieldset
+                              key={`concept-${conceptIndex}-page-${pageIndex}-variant-${variantIndex}`}
+                            >
+                              <legend>{variant.size}</legend>
+                              <p>Page Variant details.</p>
+                              <table>
+                                <tbody>
+                                  <tr>
+                                    <td>
+                                      <label>Size</label>
+                                    </td>
+                                    <td>
+                                      <select
+                                        data-concept-index={conceptIndex}
+                                        data-page-index={pageIndex}
+                                        data-variant-index={variantIndex}
+                                        value={variant.size}
+                                        onChange={onVariantValueChange}
+                                        data-prop="size"
+                                        name={`concept-${conceptIndex}-page-${pageIndex}-variant-${variantIndex}-size`}
+                                        required
+                                      >
+                                        {PAGE_SIZES.map((name) => (
+                                          <option
+                                            key={`concept-${conceptIndex}-page-${pageIndex}-variant-${variantIndex}-size-${name}`}
+                                            value={name}
+                                          >
+                                            {name}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>
+                                      <label>Image</label>
+                                    </td>
+                                    <td>
+                                      <input
+                                        data-concept-index={conceptIndex}
+                                        data-page-index={pageIndex}
+                                        data-variant-index={variantIndex}
+                                        data-prop="image"
+                                        onChange={onVariantValueChange}
+                                        type="file"
+                                        accept="image/png, image/jpeg"
+                                        name={`concept-${conceptIndex}-page-${pageIndex}-variant-${variantIndex}-image`}
+                                        required
+                                      />
+                                      <button
+                                        data-concept-index={conceptIndex}
+                                        data-page-index={pageIndex}
+                                        data-variant-index={variantIndex}
+                                        type="button"
+                                        onClick={onClickRemoveVariantImage}
+                                      >
+                                        Remove image
+                                      </button>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                              <button
+                                type="button"
+                                data-concept-index={conceptIndex}
+                                data-page-index={pageIndex}
+                                data-variant-index={variantIndex}
+                                onClick={onClickRemoveVariant}
+                              >
+                                Delete {variant.size}
+                              </button>
+                            </fieldset>
+                          ))}
+                      </fieldset>
                     </fieldset>
                   ))}
               </fieldset>

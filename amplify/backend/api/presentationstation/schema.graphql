@@ -1,3 +1,20 @@
+type S3Object {
+  key: String!
+  identityId: String!
+}
+
+enum PageSizeEnum {
+  Small
+  Medium
+  Large
+}
+
+enum ClientGroupEnum {
+  NOA
+  TPCI
+  WTC
+}
+
 type Project
   @model
   @auth(
@@ -14,14 +31,7 @@ type Project
   client: ClientGroupEnum!
   description: String
   logo: S3Object
-  concepts: [Concept]
-    @connection(keyName: "byConcept", fields: ["id"], sortField: "createdAt")
-}
-
-enum ClientGroupEnum {
-  NOA
-  TPCI
-  WTC
+  concepts: [Concept] @connection(keyName: "byConcept", fields: ["id"])
 }
 
 type Concept
@@ -38,10 +48,9 @@ type Concept
   ) {
   id: ID!
   name: String!
-  projectID: ID!
   moodboard: S3Object
-  pages: [Page]
-    @connection(keyName: "byPage", fields: ["id"], sortField: "createdAt")
+  pages: [Page] @connection(keyName: "byPage", fields: ["id"])
+  projectID: ID!
 }
 
 type Page
@@ -58,18 +67,25 @@ type Page
   ) {
   id: ID!
   name: String!
-  size: PageSizeEnum!
+  variants: [PageVariant] @connection(keyName: "byVariant", fields: ["id"])
   conceptID: ID!
+}
+
+type PageVariant
+  @model(queries: null)
+  @key(name: "byVariant", fields: ["pageID"])
+  @key(name: "BySize", fields: ["size"], queryField: "pageVariantBySize")
+  @auth(
+    rules: [
+      {
+        allow: groups
+        groups: ["Admin", "WTC"]
+        operations: [create, update, delete]
+      }
+    ]
+  ) {
+  id: ID!
+  size: PageSizeEnum!
   image: S3Object!
-}
-
-type S3Object {
-  key: String!
-  identityId: String!
-}
-
-enum PageSizeEnum {
-  Small
-  Medium
-  Large
+  pageID: ID!
 }
