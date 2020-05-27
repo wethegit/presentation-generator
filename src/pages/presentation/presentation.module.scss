@@ -1,10 +1,14 @@
 .PresentationPage {
-  background-color: var(--c-primary);
   color: var(--c-secondary);
   height: 100vh;
   position: relative;
   max-width: none;
   width: 100vw;
+}
+
+.PresentationPage__wrapper {
+  background-color: var(--c-primary);
+  max-width: 100%;
 }
 
 /* ------------------ sidebar */
@@ -87,10 +91,13 @@
 }
 
 .breakpoints__button {
-  padding: 0;
-  border-radius: 50%;
+  appearance: none;
   background: var(--c-secondary);
+  border: none;
+  border-radius: 50%;
   color: var(--c-primary);
+  display: block;
+  padding: 0;
 }
 
 .breakpoints__button:hover,
@@ -171,10 +178,14 @@
   border: none;
   background: none;
   color: var(--c-secondary);
-  font-size: 26px;
   display: block;
+  font-size: 26px;
   padding: 5px 5px 5px 0;
   text-align: left;
+}
+
+button.concepts__button {
+  cursor: pointer;
 }
 
 .concepts__button:hover,
@@ -242,16 +253,16 @@ p.concepts__button:focus {
   width: 100%;
 }
 
-.showcase--mobile,
-.showcase--tablet {
+.showcase--Small,
+.showcase--Medium {
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
 }
 
-.showcase--mobile .showcase__frame::after,
-.showcase--tablet .showcase__frame::after {
+.showcase--Small .showcase__frame::after,
+.showcase--Medium .showcase__frame::after {
   content: "";
   position: absolute;
   top: 0;
@@ -261,28 +272,28 @@ p.concepts__button:focus {
   pointer-events: none;
 }
 
-.showcase--mobile .showcase__frame {
+.showcase--Small .showcase__frame {
   width: 459px;
   height: 894px;
   padding: 37px 48px 66px 28px;
 }
 
-.showcase--mobile .showcase__frame::after {
+.showcase--Small .showcase__frame::after {
   background: url("./phone-frame.png") center center/contain no-repeat;
 }
 
-.showcase--tablet .showcase__frame {
+.showcase--Medium .showcase__frame {
   width: 730px;
   height: 993px;
   padding: 48px 69px 69px 47px;
 }
 
-.showcase--tablet .showcase__frame::after {
+.showcase--Medium .showcase__frame::after {
   background: url("./tablet-frame.png") center center/contain no-repeat;
 }
 
 @media screen and (max-height: 1000px) {
-  .showcase--tablet .showcase__frame {
+  .showcase--Medium .showcase__frame {
     width: 540px;
     height: 763px;
     padding: 49px 51px 65px 35px;
@@ -290,7 +301,7 @@ p.concepts__button:focus {
 }
 
 @media screen and (max-height: 900px) {
-  .showcase--mobile .showcase__frame {
+  .showcase--Small .showcase__frame {
     width: 389px;
     height: 769px;
     padding: 37px 40px 60px 23px;

@@ -100,6 +100,10 @@ export default function CreateProjectPage() {
     },
   });
 
+  const createUniqueImageName = function (append, fileName) {
+    return `${Date.now()}-${project.slug}-${append}-${fileName}`;
+  };
+
   const onSubmit = async (event) => {
     event.preventDefault();
 
@@ -111,7 +115,6 @@ export default function CreateProjectPage() {
 
     try {
       let promises = [];
-      const imagePrefix = `${Date.now()}-${slug}-`;
 
       if (logo) {
         let { new: newLogo, url, ...logoDetails } = logo;
@@ -122,9 +125,13 @@ export default function CreateProjectPage() {
           if (logo.key) promises.push(Storage.remove(logo.key));
 
           // upload new one
-          logo = await Storage.put(`${imagePrefix}${newLogo.name}`, newLogo, {
-            contentType: newLogo.type,
-          });
+          logo = await Storage.put(
+            createUniqueImageName("logo", newLogo.name),
+            newLogo,
+            {
+              contentType: newLogo.type,
+            }
+          );
 
           // save keys to object
           logo = {
@@ -154,7 +161,7 @@ export default function CreateProjectPage() {
             if (moodboard.key) promises.push(Storage.remove(moodboard.key));
 
             moodboard = await Storage.put(
-              `${imagePrefix}concept-${newMoodboard.name}`,
+              createUniqueImageName("concept", newMoodboard.name),
               newMoodboard,
               {
                 contentType: newMoodboard.type,
@@ -205,7 +212,7 @@ export default function CreateProjectPage() {
           else {
             // create concept
             const {
-              data: { createConcept: newPage },
+              data: { createPage: newPage },
             } = await createPageMutation({
               variables: {
                 input: { conceptID, name },
@@ -216,33 +223,35 @@ export default function CreateProjectPage() {
           }
 
           // Go through variants
-          for (let {
-            id: variantId,
-            size,
-            image: { url, ...image },
-          } of variants.items) {
+          for (let { id: variantID, size, image } of variants.items) {
             // same thing as the logo above
-            if (image.new) {
-              if (image.key) promises.push(Storage.remove(image.key));
+            if (image) {
+              let { new: newImage, url, ...imageDetails } = image;
 
-              image = await Storage.put(
-                `${imagePrefix}variant-${image.new.name}`,
-                image.new,
-                {
-                  contentType: image.new.type,
-                }
-              );
+              if (newImage) {
+                if (image.key) promises.push(Storage.remove(image.key));
 
-              image = {
-                ...image,
-                identityId: user.identityId,
-              };
+                image = await Storage.put(
+                  createUniqueImageName("variant", newImage.name),
+                  newImage,
+                  {
+                    contentType: newImage.type,
+                  }
+                );
+
+                image = {
+                  ...image,
+                  identityId: user.identityId,
+                };
+              } else {
+                image = { ...imageDetails };
+              }
             }
 
-            if (variantId)
+            if (variantID)
               promises.push(
                 updatePageVariantMutation({
-                  variables: { input: { id: variantId, size, image } },
+                  variables: { input: { id: variantID, size, image } },
                 })
               );
             else
@@ -293,7 +302,7 @@ export default function CreateProjectPage() {
         else {
           for (let { id: pageID, variants } of pages.items) {
             const updatedPage = updatedConcept.pages.items.find(
-              ({ id }) => id === conceptID
+              ({ id }) => id === pageID
             );
 
             // couldn't find page, delete all
@@ -957,6 +966,10 @@ export default function CreateProjectPage() {
                                                 onChange={onVariantChange}
                                                 type="file"
                                                 name={`concept-${conceptIndex}-page-${pageIndex}-image`}
+                                                required={
+                                                  !variant.image ||
+                                                  !variant.image.key
+                                                }
                                               />
                                               <br />
                                               {variant.image &&

@@ -35,18 +35,23 @@ export default function CreateProjectPage() {
     client: CLIENT_GROUPS[0],
   });
   const [concepts, setConcepts] = useState([]);
-  const imagePrefix = useMemo(() => `${Date.now()}-${details.slug}-`, [
-    details.slug,
-  ]);
+
+  const createUniqueImageName = function (append, fileName) {
+    return `${Date.now()}-${details.slug}-${append}-${fileName}`;
+  };
 
   const createVariantEntry = async (pageID, variant) => {
     let { image, ...variantDetails } = variant;
 
     // upload image
     if (image) {
-      image = await Storage.put(`${imagePrefix}variant-${image.name}`, image, {
-        contentType: image.type,
-      });
+      image = await Storage.put(
+        createUniqueImageName("variant", image.name),
+        image,
+        {
+          contentType: image.type,
+        }
+      );
 
       image = {
         ...image,
@@ -92,7 +97,7 @@ export default function CreateProjectPage() {
     // check if there is a moodboard  upload and get the ID
     if (moodboard) {
       moodboard = await Storage.put(
-        `${imagePrefix}concept-${moodboard.name}`,
+        createUniqueImageName("concept", moodboard.name),
         moodboard,
         {
           contentType: moodboard.type,
@@ -133,9 +138,13 @@ export default function CreateProjectPage() {
       let { logo, ...projectDetails } = details;
 
       if (logo) {
-        logo = await Storage.put(`${imagePrefix}${logo.name}`, logo, {
-          contentType: logo.type,
-        });
+        logo = await Storage.put(
+          createUniqueImageName("logo", logo.name),
+          logo,
+          {
+            contentType: logo.type,
+          }
+        );
 
         logo = {
           ...logo,

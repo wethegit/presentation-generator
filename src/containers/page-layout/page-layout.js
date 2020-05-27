@@ -10,6 +10,7 @@ import styles from "./page.module.scss";
 export default function PageLayout({
   children,
   className,
+  innerClassName,
   noNavigation,
   noFooter,
   ...props
@@ -17,7 +18,13 @@ export default function PageLayout({
   return (
     <div className={classnames([styles.PageLayout, className])}>
       {!noNavigation && <Navigation />}
-      <div className={classnames(["wrapper", styles.PageLayout__children])}>
+      <div
+        className={classnames([
+          "wrapper",
+          styles.PageLayout__children,
+          innerClassName,
+        ])}
+      >
         {children}
       </div>
       {!noFooter && <Footer />}

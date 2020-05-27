@@ -31,7 +31,8 @@ type Project
   client: ClientGroupEnum!
   description: String
   logo: S3Object
-  concepts: [Concept] @connection(keyName: "byConcept", fields: ["id"])
+  concepts: [Concept]
+    @connection(keyName: "byConcept", fields: ["id"], sortField: "createdAt")
 }
 
 type Concept
@@ -49,7 +50,8 @@ type Concept
   id: ID!
   name: String!
   moodboard: S3Object
-  pages: [Page] @connection(keyName: "byPage", fields: ["id"])
+  pages: [Page]
+    @connection(keyName: "byPage", fields: ["id"], sortField: "createdAt")
   projectID: ID!
 }
 
@@ -67,7 +69,8 @@ type Page
   ) {
   id: ID!
   name: String!
-  variants: [PageVariant] @connection(keyName: "byVariant", fields: ["id"])
+  variants: [PageVariant]
+    @connection(keyName: "byVariant", fields: ["id"], sortField: "createdAt")
   conceptID: ID!
 }
 
